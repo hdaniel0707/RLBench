@@ -1,7 +1,8 @@
 from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
 from rlbench.observation_config import ObservationConfig
-from rlbench.tasks import ReachTarget, CloseBox
+from rlbench.tasks import ReachTarget, CloseBox, StackBlocks
+from enum import Enum
 import numpy as np
 
 
@@ -33,8 +34,35 @@ env = Environment(
     robot_configuration='ur3')
 env.launch()
 
-task = env.get_task(ReachTarget)
-demos = task.get_demos(10, live_demos=live_demos)
+class Algos(Enum):
+    BiTRRT = 'BiTRRT'
+    BITstar = 'BITstar'
+    BKPIECE1 = 'BKPIECE1'
+    CForest = 'CForest'
+    EST = 'EST'
+    FMT = 'FMT'
+    KPIECE1 = 'KPIECE1'
+    LazyPRM = 'LazyPRM'
+    LazyPRMstar = 'LazyPRMstar'
+    LazyRRT = 'LazyRRT'
+    LBKPIECE1 = 'LBKPIECE1'
+    LBTRRT = 'LBTRRT'
+    PDST = 'PDST'
+    PRM = 'PRM'
+    PRMstar = 'PRMstar'
+    pRRT = 'pRRT'
+    pSBL = 'pSBL'
+    RRT = 'RRT'
+    RRTConnect = 'RRTConnect'
+    RRTstar = 'RRTstar'
+    SBL = 'SBL'
+    SPARS = 'SPARS'
+    SPARStwo = 'SPARStwo'
+    STRIDE = 'STRIDE'
+    TRRT = 'TRRT'
+
+task = env.get_task(StackBlocks)
+demos = task.get_demos(5, live_demos=live_demos, max_attempts=1)
 
 agent = Agent(env.action_size)
 agent.ingest(demos)
