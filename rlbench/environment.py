@@ -4,10 +4,12 @@ from pyrep.robots.arms.jaco import Jaco
 from pyrep.robots.arms.mico import Mico
 from pyrep.robots.arms.sawyer import Sawyer
 from pyrep.robots.arms.ur3 import UR3
+from pyrep.robots.arms.ur5 import UR5
 from pyrep.robots.end_effectors.panda_gripper import PandaGripper
 from pyrep.robots.end_effectors.jaco_gripper import JacoGripper
 from pyrep.robots.end_effectors.mico_gripper import MicoGripper
 from pyrep.robots.end_effectors.baxter_gripper import BaxterGripper
+from pyrep.robots.end_effectors.robotiq85_gripper import Robotiq85Gripper
 from rlbench import utils
 from rlbench.demo import Demo
 
@@ -33,12 +35,14 @@ DIR_PATH = dirname(abspath(__file__))
 # Arms from PyRep need to be modified to include a wrist camera.
 # Currently, only the arms/grippers below are supported.
 SUPPORTED_ROBOTS = {
-    'panda': (Panda, PandaGripper, 7),
-    'jaco': (Jaco, JacoGripper, 6),
-    'mico': (Mico, MicoGripper, 6),
-    'sawyer': (Sawyer, BaxterGripper, 7),
-    'ur3': (UR3, BaxterGripper, 6),
-    'ur3panda': (UR3, PandaGripper, 6)
+    'panda': (Panda, PandaGripper, 7, 'task_design.ttt'),
+    # 'jaco': (Jaco, JacoGripper, 6),
+    # 'mico': (Mico, MicoGripper, 6),
+    # 'sawyer': (Sawyer, BaxterGripper, 7),
+    'ur5': (UR5, Robotiq85Gripper, 6, 'task_design_ur5.ttt'),
+    'ur3robotiq': (UR3, Robotiq85Gripper, 6, 'task_design_ur3robotiq.ttt'),
+    'ur3baxter': (UR3, BaxterGripper, 6, 'task_design_ur3baxter.ttt'),
+    'ur3panda': (UR3, PandaGripper, 6, 'task_design_ur3panda.ttt')
 }
 
 
@@ -55,6 +59,8 @@ class Environment(object):
                  dynamics_randomization_config: DynamicsRandomizationConfig=None,
                  attach_grasped_objects: bool = True
                  ):
+
+        print('in init')
 
         self._dataset_root = dataset_root
         self._action_mode = action_mode
@@ -126,27 +132,27 @@ class Environment(object):
         return getattr(mod, class_name)
 
     def launch(self):
+        arm_class, gripper_class, _, ttt_file = SUPPORTED_ROBOTS[
+            self._robot_configuration]
+
         if self._pyrep is not None:
             raise RuntimeError('Already called launch!')
         self._pyrep = PyRep()
-        self._pyrep.launch(join(DIR_PATH, TTT_FILE), headless=self._headless)
+        self._pyrep.launch(join(DIR_PATH, ttt_file), headless=self._headless)
 
-        arm_class, gripper_class, _ = SUPPORTED_ROBOTS[
-            self._robot_configuration]
-
-        # We assume the panda is already loaded in the scene.
-        if self._robot_configuration != 'panda':
-            # Remove the panda from the scene
-            panda_arm = Panda()
-            panda_pos = panda_arm.get_position()
-            panda_arm.remove()
-            arm_path = join(DIR_PATH,
-                            'robot_ttms', self._robot_configuration + '.ttm')
-            self._pyrep.import_model(arm_path)
-            arm, gripper = arm_class(), gripper_class()
-            arm.set_position(panda_pos)
-        else:
-            arm, gripper = arm_class(), gripper_class()
+        # # We assume the panda is already loaded in the scene.
+        # if self._robot_configuration is not 'panda':
+        #     # Remove the panda from the scene
+        #     panda_arm = Panda()
+        #     panda_pos = panda_arm.get_position()
+        #     panda_arm.remove()
+        #     arm_path = join(DIR_PATH,
+        #                     'robot_ttms', self._robot_configuration + '.ttm')
+        #     self._pyrep.import_model(arm_path)
+        #     arm, gripper = arm_class(), gripper_class()
+        #     arm.set_position(panda_pos)
+        # else:
+        arm, gripper = arm_class(), gripper_class()
 
         self._robot = Robot(arm, gripper)
         if self._randomize_every is None:
