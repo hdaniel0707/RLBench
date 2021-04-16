@@ -33,6 +33,10 @@ class ReachTarget(Task):
             b.sample(ob, min_distance=0.2,
                      min_rotation=(0, 0, 0), max_rotation=(0, 0, 0))
 
+        # utilities for reward(self)
+        self._initial_distance = self._distance_to_goal()
+        self._prev_distance = self._initial_distance
+
         return ['reach the %s target' % color_name,
                 'touch the %s ball with the panda gripper' % color_name,
                 'reach the %s sphere' %color_name]
@@ -49,3 +53,14 @@ class ReachTarget(Task):
 
     def is_static_workspace(self) -> bool:
         return True
+
+    def reward(self):
+        distance = self._distance_to_goal()
+        reward = (self._prev_distance - distance) / self._initial_distance
+        self._prev_distance = distance
+        return reward
+        
+    def _distance_to_goal(self):
+        tip_pos = self.robot.arm.get_tip().get_position()
+        goal_pos = self.target.get_position()
+        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))   
