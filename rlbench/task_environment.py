@@ -368,9 +368,9 @@ class TaskEnvironment(object):
                 except Exception as e:
                     attempts -= 1
                     logging.info('Bad demo. ' + str(e))
-            if attempts <= 0:
-                raise RuntimeError(
-                    'Could not collect demos. Maybe a problem with the task?')
+            # if attempts <= 0:
+            #     raise RuntimeError(
+            #         'Could not collect demos. Maybe a problem with the task?')
         return demos
 
     def reset_to_demo(self, demo: Demo) -> (List[str], Observation):
