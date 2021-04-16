@@ -4,13 +4,13 @@ from rlbench.noise_model import NoiseModel, Identity
 
 class CameraConfig(object):
     def __init__(self,
-                 rgb=True,
+                 rgb=False,
                  rgb_noise: NoiseModel=Identity(),
-                 depth=True,
+                 depth=False,
                  depth_noise: NoiseModel=Identity(),
-                 mask=True,
+                 mask=False,
                  image_size=(128, 128),
-                 render_mode=RenderMode.OPENGL3,
+                 render_mode=RenderMode.OPENGL,
                  masks_as_one_channel=True,
                  depth_in_meters=False):
         self.rgb = rgb
