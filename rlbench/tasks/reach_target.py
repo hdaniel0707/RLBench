@@ -33,7 +33,7 @@ class ReachTarget(Task):
             b.sample(ob, min_distance=0.2,
                      min_rotation=(0, 0, 0), max_rotation=(0, 0, 0))
 
-        # utilities for reward(self)
+        # utilities for reward()
         self._initial_distance = self._distance_to_goal()
         self._prev_distance = self._initial_distance
 
