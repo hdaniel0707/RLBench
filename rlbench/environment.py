@@ -60,8 +60,6 @@ class Environment(object):
                  attach_grasped_objects: bool = True
                  ):
 
-        print('in init')
-
         self._dataset_root = dataset_root
         self._action_mode = action_mode
         self._obs_config = obs_config
