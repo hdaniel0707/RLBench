@@ -19,7 +19,7 @@ class Waypoint(object):
             self._ignore_collisions = 'ignore_collisions' in self._ext
             self._linear_only = 'linear' in self._ext
 
-        # self._linear_only = True
+        self._linear_only = True
 
     def get_path(self, ignore_collisions=False) -> ArmConfigurationPath:
         raise NotImplementedError()
