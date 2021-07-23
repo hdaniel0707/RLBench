@@ -24,6 +24,7 @@ class PickAndLift(Task):
             GraspedCondition(self.robot.gripper, self.target_block),
             DetectedCondition(self.target_block, self.success_detector)
         ])
+        # cond_set = GraspedCondition(self.robot.gripper, self.target_block)
         self.register_success_conditions([cond_set])
 
     def init_episode(self, index: int) -> List[str]:
@@ -45,6 +46,11 @@ class PickAndLift(Task):
         for block in [self.target_block] + self.distractors:
             self.boundary.sample(block, min_distance=0.1)
 
+        # utilities for reward()
+        self._grasped = 0
+        self._init_distance = self._distance_to_goal(0)
+        self._prev_distance = self._init_distance
+
         return ['pick up the %s block and lift it up to the target' %
                 block_color_name,
                 'grasp the %s block to the target' % block_color_name,
@@ -52,3 +58,39 @@ class PickAndLift(Task):
 
     def variation_count(self) -> int:
         return len(colors)
+
+    def get_low_dim_state(self) -> np.ndarray:
+        return np.concatenate([
+            np.array(self.target_block.get_position()),
+            np.array(self.success_detector.get_position())
+        ])
+
+    def is_static_workspace(self) -> bool:
+        return True
+
+    def reward(self, terminate):
+        if terminate:
+            return 100
+
+        # if block not grasped yet
+        if self._grasped == 0:
+            if len([ob for ob in self.robot.gripper.get_grasped_objects()
+                    if self.target_block.get_handle() == ob.get_handle()]) > 0:
+                self._grasped = 1
+                self._init_distance = self._distance_to_goal(1)
+                self._prev_distance = self._init_distance
+                return 100
+
+        # return 0
+        # else
+        distance = self._distance_to_goal(self._grasped)
+        reward = (self._prev_distance - distance) / self._init_distance
+        self._prev_distance = distance
+        return reward
+        
+    def _distance_to_goal(self, index):
+        targets = [self.target_block, self.success_detector]
+        target = targets[index]
+        tip_pos = self.robot.arm.get_tip().get_position()
+        goal_pos = target.get_position()
+        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))

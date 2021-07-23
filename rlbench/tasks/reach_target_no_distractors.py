@@ -8,12 +8,12 @@ from rlbench.backend.spawn_boundary import SpawnBoundary
 from rlbench.backend.conditions import DetectedCondition
 
 
-class ReachTarget(Task):
+class ReachTargetNoDistractors(Task):
 
     def init_task(self) -> None:
         self.target = Shape('target')
-        self.distractor0 = Shape('distractor0')
-        self.distractor1 = Shape('distractor1')
+        # self.distractor0 = Shape('distractor0')
+        # self.distractor1 = Shape('distractor1')
         self.boundaries = Shape('boundary')
         success_sensor = ProximitySensor('success')
         self.register_success_conditions(
@@ -22,14 +22,14 @@ class ReachTarget(Task):
     def init_episode(self, index: int) -> List[str]:
         color_name, color_rgb = colors[index]
         self.target.set_color(color_rgb)
-        color_choices = np.random.choice(
-            list(range(index)) + list(range(index + 1, len(colors))),
-            size=2, replace=False)
-        for ob, i in zip([self.distractor0, self.distractor1], color_choices):
-            name, rgb = colors[i]
-            ob.set_color(rgb)
+        # color_choices = np.random.choice(
+        #     list(range(index)) + list(range(index + 1, len(colors))),
+        #     size=2, replace=False)
+        # for ob, i in zip([self.distractor0, self.distractor1], color_choices):
+        #     name, rgb = colors[i]
+        #     ob.set_color(rgb)
         b = SpawnBoundary([self.boundaries])
-        for ob in [self.target, self.distractor0, self.distractor1]:
+        for ob in [self.target]:#, self.distractor0, self.distractor1]:
             b.sample(ob, min_distance=0.2,
                      min_rotation=(0, 0, 0), max_rotation=(0, 0, 0))
 
@@ -66,4 +66,4 @@ class ReachTarget(Task):
     def _distance_to_goal(self):
         tip_pos = self.robot.arm.get_tip().get_position()
         goal_pos = self.target.get_position()
-        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
+        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))   

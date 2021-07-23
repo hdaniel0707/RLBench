@@ -301,7 +301,7 @@ class TaskEnvironment(object):
                 self._robot.gripper.release()
 
         success, terminate = self._task.success()
-        task_reward = self._task.reward()
+        task_reward = self._task.reward(terminate)
         reward = float(success) if task_reward is None else task_reward
         return self._scene.get_observation(), reward, terminate
 

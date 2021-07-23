@@ -35,7 +35,8 @@ class StackBlocks(Task):
     def init_episode(self, index: int) -> List[str]:
         # For each color, we want to have 2, 3 or 4 blocks stacked
         color_index = int(index / MAX_STACKED_BLOCKS)
-        self.blocks_to_stack = 2 + index % MAX_STACKED_BLOCKS
+        # self.blocks_to_stack = 2 + index % MAX_STACKED_BLOCKS
+        self.blocks_to_stack = 1 + index % MAX_STACKED_BLOCKS
         color_name, color_rgb = colors[color_index]
         for b in self.target_blocks:
             b.set_color(color_rgb)

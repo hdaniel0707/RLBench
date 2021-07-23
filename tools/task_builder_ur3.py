@@ -226,7 +226,7 @@ if __name__ == '__main__':
     setup_list_completer()
 
     pr = PyRep()
-    ttt_file = join(CURRENT_DIR, '..', 'rlbench', 'task_design_ur3.ttt')
+    ttt_file = join(CURRENT_DIR, '..', 'rlbench', 'task_design_ur3baxter.ttt')
     pr.launch(ttt_file, responsive_ui=True)
     pr.step_ui()
 
