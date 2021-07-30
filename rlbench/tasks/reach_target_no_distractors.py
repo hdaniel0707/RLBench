@@ -56,8 +56,9 @@ class ReachTargetNoDistractors(Task):
 
     def reward(self, terminate):
         if terminate:
-            return 100
+            return 1
             
+        return 0    
         distance = self._distance_to_goal()
         reward = (self._prev_distance - distance) / self._init_distance
         self._prev_distance = distance

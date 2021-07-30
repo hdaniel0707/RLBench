@@ -70,7 +70,7 @@ class PickAndLift(Task):
 
     def reward(self, terminate):
         if terminate:
-            return 100
+            return 1
 
         # if block not grasped yet
         if self._grasped == 0:
@@ -79,10 +79,10 @@ class PickAndLift(Task):
                 self._grasped = 1
                 self._init_distance = self._distance_to_goal(1)
                 self._prev_distance = self._init_distance
-                return 100
+                return 1
 
-        # return 0
         # else
+        return 0
         distance = self._distance_to_goal(self._grasped)
         reward = (self._prev_distance - distance) / self._init_distance
         self._prev_distance = distance

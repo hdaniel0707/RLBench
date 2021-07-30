@@ -36,6 +36,8 @@ flags.DEFINE_integer('episodes_per_task', 10,
                      'The number of episodes to collect per task.')
 flags.DEFINE_integer('variations', -1,
                      'Number of variations to collect per task. -1 for all.')
+flags.DEFINE_string('robot', 'ur3baxter',
+                     'Which robot configuration to use.')
 
 
 def check_and_make(dir):
@@ -176,6 +178,7 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
 
     obs_config = ObservationConfig()
     obs_config.set_all(True)
+    obs_config.gripper_touch_forces = False
     obs_config.right_shoulder_camera.image_size = img_size
     obs_config.left_shoulder_camera.image_size = img_size
     obs_config.overhead_camera.image_size = img_size
@@ -206,6 +209,7 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
     rlbench_env = Environment(
         action_mode=ActionMode(),
         obs_config=obs_config,
+        robot_configuration=FLAGS.robot,
         headless=True)
     rlbench_env.launch()
 
@@ -255,9 +259,10 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
 
         episodes_path = os.path.join(variation_path, EPISODES_FOLDER)
         check_and_make(episodes_path)
+        offset = len(os.listdir(episodes_path))
 
         abort_variation = False
-        for ex_idx in range(FLAGS.episodes_per_task):
+        for ex_idx in range(offset, offset + FLAGS.episodes_per_task):
             print('Process', i, '// Task:', task_env.get_name(),
                   '// Variation:', my_variation_count, '// Demo:', ex_idx)
             attempts = 10
