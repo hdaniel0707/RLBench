@@ -58,7 +58,7 @@ class ReachTargetNoDistractors(Task):
         if terminate:
             return 1
             
-        # return 0    
+        return 0    
         distance = self._distance_to_goal()
         # reward1 = (self._prev_distance - distance) / self._init_distance
         # reward2 = - distance  / self._init_distance
@@ -71,6 +71,8 @@ class ReachTargetNoDistractors(Task):
         def distance(ob):
             return np.linalg.norm(
                 ob.gripper_pose[:3] - ob.task_low_dim_state)
+
+        return [0] * (len(demo) - 2) + [1]
 
         init_distance = distance(demo[0]) 
         return [
