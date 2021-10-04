@@ -38,6 +38,19 @@ def name_to_task_class(task_file: str):
     return task_class
 
 
+def get_num_stored_demos(dataset_root: str, variation_number: int, task_name: str,):
+
+    task_root = join(dataset_root, task_name)
+    if not exists(task_root):
+        raise RuntimeError("Can't find the demos for %s at: %s" % (
+            task_name, task_root))
+
+    examples_path = join(
+        task_root, VARIATIONS_FOLDER % variation_number,
+        EPISODES_FOLDER)
+    return  len(listdir(examples_path))
+
+
 def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
                      variation_number: int, task_name: str,
                      obs_config: ObservationConfig,

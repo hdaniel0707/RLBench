@@ -139,14 +139,17 @@ class Scene(object):
         self._has_init_episode = True
         return descriptions
 
-    def reset(self) -> None:
+    def reset(self, joint_positions=None) -> None:
         """Resets the joint angles. """
         self._robot.gripper.release()
 
         arm, gripper = self._initial_robot_state
         self._pyrep.set_configuration_tree(arm)
         self._pyrep.set_configuration_tree(gripper)
-        self._robot.arm.set_joint_positions(self._start_arm_joint_pos, disable_dynamics=True)
+        if joint_positions is None:
+            self._robot.arm.set_joint_positions(self._start_arm_joint_pos, disable_dynamics=True)
+        else:
+            self._robot.arm.set_joint_positions(joint_positions, disable_dynamics=True)
         self._robot.arm.set_joint_target_velocities(
             [0] * len(self._robot.arm.joints))
         self._robot.gripper.set_joint_positions(

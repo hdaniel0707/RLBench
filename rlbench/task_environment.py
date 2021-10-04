@@ -76,8 +76,8 @@ class TaskEnvironment(object):
     def variation_count(self) -> int:
         return self._task.variation_count()
 
-    def reset(self) -> (List[str], Observation):
-        self._scene.reset()
+    def reset(self, joint_positions=None) -> (List[str], Observation):
+        self._scene.reset(joint_positions)
         try:
             desc = self._scene.init_episode(
                 self._variation_number, max_attempts=_MAX_RESET_ATTEMPTS,

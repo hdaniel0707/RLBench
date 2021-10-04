@@ -221,6 +221,11 @@ class Environment(object):
             task_name, self._obs_config, random_selection, from_episode_number)
         return demos
 
+    def get_num_demos(self, task_name: str, variation_number=0):
+        if self._dataset_root is None or len(self._dataset_root) == 0:
+            return 0
+        return utils.get_num_stored_demos(self._dataset_root, variation_number, task_name)
+
     def get_scene_data(self) -> dict:
         """Get the data of various scene/camera information.
 

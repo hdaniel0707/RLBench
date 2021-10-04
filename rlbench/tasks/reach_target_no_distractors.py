@@ -58,12 +58,30 @@ class ReachTargetNoDistractors(Task):
         if terminate:
             return 1
             
-        return 0    
+        # return 0    
         distance = self._distance_to_goal()
-        reward = (self._prev_distance - distance) / self._init_distance
+        # reward1 = (self._prev_distance - distance) / self._init_distance
+        # reward2 = - distance  / self._init_distance
+        reward3 = 1 / (1 + 10 * (distance  / self._init_distance))
         self._prev_distance = distance
-        return reward
-        
+        return reward3
+
+    @staticmethod
+    def reward_from_demo(demo): # TODO integrate with reward
+        def distance(ob):
+            return np.linalg.norm(
+                ob.gripper_pose[:3] - ob.task_low_dim_state)
+
+        init_distance = distance(demo[0]) 
+        return [
+            1 / (1 + 10 * (distance(ob)  / init_distance))
+            for ob in demo[1:-1]] + [1]
+
+    # def _reward(tip_pos, goal_pos, init_distance):
+    #     distance = self._distance(tip_pos, goal_pos)
+    #     reward = 1 / (1 + 10 * (distance  / init_distance))
+    #     return reward, distance
+
     def _distance_to_goal(self):
         tip_pos = self.robot.arm.get_tip().get_position()
         goal_pos = self.target.get_position()
