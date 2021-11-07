@@ -20,6 +20,7 @@ class ReachTarget(Task):
             [DetectedCondition(self.robot.arm.get_tip(), success_sensor)])
 
     def init_episode(self, index: int) -> List[str]:
+        self._index = index
         color_name, color_rgb = colors[index]
         self.target.set_color(color_rgb)
         color_choices = np.random.choice(
@@ -51,6 +52,27 @@ class ReachTarget(Task):
         # One of the few tasks that have a custom low_dim_state function.
         return np.array(self.target.get_position())
 
+    # def get_low_dim_state(self) -> np.ndarray:
+    #     # One of the few tasks that have a custom low_dim_state function.
+    #     if self._index == 0:
+    #         return np.concatenate([
+    #             np.array(self.target.get_position()),
+    #             np.array(self.distractor0.get_position()),
+    #             np.array(self.distractor1.get_position()),
+    #         ])
+    #     elif self._index == 1:
+    #         return np.concatenate([
+    #             np.array(self.distractor0.get_position()),
+    #             np.array(self.target.get_position()),
+    #             np.array(self.distractor1.get_position()),
+    #         ])
+    #     elif self._index == 2:
+    #         return np.concatenate([
+    #             np.array(self.distractor0.get_position()),
+    #             np.array(self.distractor1.get_position()),
+    #             np.array(self.target.get_position()),
+    #         ])
+
     def is_static_workspace(self) -> bool:
         return True
 
@@ -59,10 +81,10 @@ class ReachTarget(Task):
             return 1
             
         return 0    
-        distance = self._distance_to_goal()
-        reward = (self._prev_distance - distance) / self._init_distance
-        self._prev_distance = distance
-        return reward
+
+    @staticmethod
+    def reward_from_demo(demo): # TODO integrate with reward
+        return [0] * (len(demo) - 2) + [1]
         
     def _distance_to_goal(self):
         tip_pos = self.robot.arm.get_tip().get_position()

@@ -316,7 +316,7 @@ def main(argv):
     file_lock = manager.Lock()
 
     task_index = manager.Value('i', 0)
-    variation_count = manager.Value('i', 0)
+    variation_count = manager.Value('i', 0) # set > 0 to start from that variation
     lock = manager.Lock()
 
     check_and_make(FLAGS.save_path)
