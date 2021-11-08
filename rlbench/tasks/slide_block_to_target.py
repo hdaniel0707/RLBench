@@ -42,6 +42,10 @@ class SlideBlockToTarget(Task):
         self._prev_distance = distance
         return reward
 
+    @staticmethod
+    def reward_from_demo(demo): # TODO integrate with reward
+        return [0] * (len(demo) - 2) + [1]
+
     def get_low_dim_state(self) -> np.ndarray:
         return np.concatenate([
             np.array(self.target_block.get_position()),
