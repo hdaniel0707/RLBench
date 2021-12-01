@@ -4,6 +4,8 @@ from pyrep.objects.joint import Joint
 from rlbench.backend.task import Task
 from rlbench.backend.conditions import JointCondition,ConditionSet
 
+import numpy as np
+
 # button top plate and wrapper will be be red before task completion
 # and be changed to cyan upon success of task, so colors list used to randomly vary colors of
 # base block will be redefined, excluding red and green
@@ -59,3 +61,17 @@ class PushButton(Task):
         if self.goal_condition.condition_met() == (True, True):
             self.target_topPlate.set_color([0.0, 1.0, 0.0])
             self.target_wrap.set_color([0.0, 1.0, 0.0])
+
+    def reward(self, terminate):
+        if terminate:
+            return 1
+
+        return 0
+
+    @staticmethod
+    def reward_from_demo(demo): # TODO integrate with reward
+        return [0] * (len(demo) - 2) + [1]
+
+    def get_low_dim_state(self) -> np.ndarray:
+        # One of the few tasks that have a custom low_dim_state function.
+        return np.array(self.target_button.get_position())
