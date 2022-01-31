@@ -432,7 +432,7 @@ class Scene(object):
         if not success:
             raise DemoError('Demo was completed, but was not successful.',
                             self._active_task)
-        return Demo(demo)
+        return Demo(demo, self._variation_index)
 
     def get_observation_config(self) -> ObservationConfig:
         return self._obs_config

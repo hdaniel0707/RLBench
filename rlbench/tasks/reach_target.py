@@ -48,30 +48,30 @@ class ReachTarget(Task):
     def base_rotation_bounds(self) -> Tuple[List[float], List[float]]:
         return [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]
 
-    def get_low_dim_state(self) -> np.ndarray:
-        # One of the few tasks that have a custom low_dim_state function.
-        return np.array(self.target.get_position())
-
     # def get_low_dim_state(self) -> np.ndarray:
     #     # One of the few tasks that have a custom low_dim_state function.
-    #     if self._index == 0:
-    #         return np.concatenate([
-    #             np.array(self.target.get_position()),
-    #             np.array(self.distractor0.get_position()),
-    #             np.array(self.distractor1.get_position()),
-    #         ])
-    #     elif self._index == 1:
-    #         return np.concatenate([
-    #             np.array(self.distractor0.get_position()),
-    #             np.array(self.target.get_position()),
-    #             np.array(self.distractor1.get_position()),
-    #         ])
-    #     elif self._index == 2:
-    #         return np.concatenate([
-    #             np.array(self.distractor0.get_position()),
-    #             np.array(self.distractor1.get_position()),
-    #             np.array(self.target.get_position()),
-    #         ])
+    #     return np.array(self.target.get_position())
+
+    def get_low_dim_state(self) -> np.ndarray:
+        # One of the few tasks that have a custom low_dim_state function.
+        if self._index == 0:
+            return np.concatenate([
+                np.array(self.target.get_position()),
+                np.array(self.distractor0.get_position()),
+                np.array(self.distractor1.get_position()),
+            ])
+        elif self._index == 1:
+            return np.concatenate([
+                np.array(self.distractor0.get_position()),
+                np.array(self.target.get_position()),
+                np.array(self.distractor1.get_position()),
+            ])
+        elif self._index == 2:
+            return np.concatenate([
+                np.array(self.distractor0.get_position()),
+                np.array(self.distractor1.get_position()),
+                np.array(self.target.get_position()),
+            ])
 
     def is_static_workspace(self) -> bool:
         return True

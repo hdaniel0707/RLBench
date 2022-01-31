@@ -36,6 +36,8 @@ flags.DEFINE_integer('episodes_per_task', 10,
                      'The number of episodes to collect per task.')
 flags.DEFINE_integer('variations', -1,
                      'Number of variations to collect per task. -1 for all.')
+flags.DEFINE_integer('init_variation', 0,
+                     'Start counting from this variation.')
 flags.DEFINE_string('robot', 'ur3baxter',
                      'Which robot configuration to use.')
 
@@ -316,7 +318,7 @@ def main(argv):
     file_lock = manager.Lock()
 
     task_index = manager.Value('i', 0)
-    variation_count = manager.Value('i', 0) # set > 0 to start from that variation
+    variation_count = manager.Value('i', FLAGS.init_variation)
     lock = manager.Lock()
 
     check_and_make(FLAGS.save_path)

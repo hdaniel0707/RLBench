@@ -3,8 +3,9 @@ import numpy as np
 
 class Demo(object):
 
-    def __init__(self, observations, random_seed=None):
+    def __init__(self, observations, variation_index, random_seed=None):
         self._observations = observations
+        self.variation_index = variation_index
         self.random_seed = random_seed
 
     def __len__(self):
