@@ -92,5 +92,5 @@ class DomainRandomizationScene(Scene):
             self._count += 1
         super().step()
 
-    def reset(self) -> None:
-        return super().reset()
+    def reset(self, joint_positions=None) -> None:
+        return super().reset(joint_positions)
