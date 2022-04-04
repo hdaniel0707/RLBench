@@ -54,17 +54,21 @@ class ReachTargetNoDistractors(Task):
     def is_static_workspace(self) -> bool:
         return True
 
+    # def set_reward(self, reward: str):
+    #     assert reward in ['sparse', 'dist', 'delta-dist']
+    #     self._reward = reward
+
     def reward(self, terminate):
         if terminate:
             return 1
             
-        return 0    
+        # return 0    
         distance = self._distance_to_goal()
-        # reward1 = (self._prev_distance - distance) / self._init_distance
+        reward1 = (self._prev_distance - distance) / (100 * self._init_distance)
         # reward2 = - distance  / self._init_distance
-        reward3 = 1 / (1 + 10 * (distance  / self._init_distance))
+        # reward3 = 1 / (1 + 10 * (distance  / self._init_distance))
         self._prev_distance = distance
-        return reward3
+        return reward1
 
     @staticmethod
     def reward_from_demo(demo): # TODO integrate with reward
@@ -72,9 +76,12 @@ class ReachTargetNoDistractors(Task):
             return np.linalg.norm(
                 ob.gripper_pose[:3] - ob.task_low_dim_state)
 
-        return [0] * (len(demo) - 2) + [1]
+        # return [0] * (len(demo) - 2) + [1]
 
-        init_distance = distance(demo[0]) 
+        init_distance = distance(demo[0])
+        return [
+            (distance(demo[i]) - distance(demo[i+1])) / (100 * init_distance)
+            for i in range(len(demo[1:-1]))] + [1]
         return [
             1 / (1 + 10 * (distance(ob)  / init_distance))
             for ob in demo[1:-1]] + [1]
@@ -87,4 +94,4 @@ class ReachTargetNoDistractors(Task):
     def _distance_to_goal(self):
         tip_pos = self.robot.arm.get_tip().get_position()
         goal_pos = self.target.get_position()
-        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))   
+        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
