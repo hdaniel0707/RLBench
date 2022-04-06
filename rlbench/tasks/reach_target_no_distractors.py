@@ -10,9 +10,10 @@ from rlbench.backend.conditions import DetectedCondition
 
 class ReachTargetNoDistractors(Task):
 
-    def init_task(self, reward: str) -> None:
+    def init_task(self, reward: str, reward_scale: int) -> None:
         assert reward in ['sparse', 'dist', 'delta-dist']
         self._reward = reward
+        self._reward_scale = reward_scale
 
         self.target = Shape('target')
         # self.distractor0 = Shape('distractor0')
@@ -66,15 +67,15 @@ class ReachTargetNoDistractors(Task):
         elif self._reward == 'dist':
             distance = self._distance_to_goal()
             # return - distance  / (100 * self._init_distance)
-            return 1 / (100 * (1 + 10 * (distance  / self._init_distance)))
+            return 1 / (self._reward_scale * (1 + 10 * (distance  / self._init_distance)))
         elif self._reward == 'delta-dist':
             distance = self._distance_to_goal()
-            return (self._prev_distance - distance) / (100 * self._init_distance)
+            return (self._prev_distance - distance) / (self._reward_scale * self._init_distance)
         else:
             raise ValueError
 
     @staticmethod
-    def reward_from_demo(demo, reward: str):
+    def reward_from_demo(demo, reward: str, reward_scale: int):
         assert reward in ['sparse', 'dist', 'delta-dist']
 
         def distance(ob):
@@ -86,12 +87,12 @@ class ReachTargetNoDistractors(Task):
         elif reward == 'dist':
             init_distance = distance(demo[0])
             return [
-                1 / (100 * (1 + 10 * (distance(ob)  / init_distance)))
+                1 / (reward_scale * (1 + 10 * (distance(ob)  / init_distance)))
                 for ob in demo[1:-1]] + [1]
         elif reward == 'delta-dist':
             init_distance = distance(demo[0])
             return [
-                (distance(demo[i]) - distance(demo[i+1])) / (100 * init_distance)
+                (distance(demo[i]) - distance(demo[i+1])) / (reward_scale * init_distance)
                 for i in range(len(demo[1:-1]))] + [1]
         else:
             raise ValueError
