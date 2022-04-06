@@ -104,11 +104,11 @@ class Scene(object):
         self.task = None
         self._variation_index = 0
 
-    def init_task(self) -> None:
-        self.task.init_task()
+    def init_task(self, kwargs: dict) -> None:
+        self.task.init_task(**kwargs)
         self._initial_task_state = self.task.get_state()
         self._has_init_task = True
-        self._variation_index = 0
+        self._variation_index = 0 # TODO doesn't this override the index in self.init_episode() ?
 
     def init_episode(self, index: int, randomly_place: bool=True,
                      max_attempts: int = 5) -> List[str]:

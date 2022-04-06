@@ -213,7 +213,7 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
     rlbench_env = Environment(
         action_mode=MoveArmThenGripper(JointVelocity(), Discrete()),
         obs_config=obs_config,
-        robot_configuration=FLAGS.robot,
+        robot_setup=FLAGS.robot,
         headless=True)
     rlbench_env.launch()
 

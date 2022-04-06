@@ -57,9 +57,6 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
                      random_selection: bool = True,
                      from_episode_number: int = 0) -> List[Demo]:
 
-    original_task_low_dim_state = obs_config.task_low_dim_state
-    obs_config.task_low_dim_state = True
-
     task_root = join(dataset_root, task_name)
     if not exists(task_root):
         raise RuntimeError("Can't find the demos for %s at: %s" % (
@@ -325,7 +322,6 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
 
         demos.append(obs)
 
-    obs_config.task_low_dim_state = original_task_low_dim_state
     return demos
 
 
