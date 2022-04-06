@@ -10,7 +10,7 @@ from rlbench.backend.conditions import DetectedCondition
 
 class ReachTargetNoDistractors(Task):
 
-    def init_task(self, reward: str, reward_scale: int) -> None:
+    def init_task(self, reward="sparse", reward_scale=100) -> None:
         assert reward in ['sparse', 'dist', 'delta-dist']
         self._reward = reward
         self._reward_scale = reward_scale
@@ -75,7 +75,7 @@ class ReachTargetNoDistractors(Task):
             raise ValueError
 
     @staticmethod
-    def reward_from_demo(demo, reward: str, reward_scale: int):
+    def reward_from_demo(demo, reward="sparse", reward_scale=100):
         assert reward in ['sparse', 'dist', 'delta-dist']
 
         def distance(ob):
