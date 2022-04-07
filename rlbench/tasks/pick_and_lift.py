@@ -1,3 +1,4 @@
+from imp import is_builtin
 from typing import List
 import numpy as np
 from pyrep.objects.shape import Shape
@@ -11,7 +12,11 @@ from rlbench.const import colors
 
 class PickAndLift(Task):
 
-    def init_task(self) -> None:
+    def init_task(self, reward="sparse", reward_scale=100) -> None:
+        assert reward in ['sparse', 'dist', 'delta-dist']
+        self._reward = reward
+        self._reward_scale = reward_scale
+
         self.target_block = Shape('pick_and_lift_target')
         self.distractors = [
             Shape('stack_blocks_distractor%d' % i)
@@ -48,7 +53,7 @@ class PickAndLift(Task):
 
         # utilities for reward()
         self._grasped = 0
-        self._init_distance = self._distance_to_goal(0)
+        self._init_distance = self._distance_to_goal(self._grasped)
         self._prev_distance = self._init_distance
 
         return ['pick up the %s block and lift it up to the target' %
@@ -68,6 +73,13 @@ class PickAndLift(Task):
     def is_static_workspace(self) -> bool:
         return True
 
+    def _distance_to_goal(self, index):
+        targets = [self.target_block, self.success_detector]
+        target = targets[index]
+        tip_pos = self.robot.arm.get_tip().get_position()
+        goal_pos = target.get_position()
+        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
+
     def reward(self, terminate):
         if terminate:
             return 1
@@ -77,20 +89,64 @@ class PickAndLift(Task):
             if len([ob for ob in self.robot.gripper.get_grasped_objects()
                     if self.target_block.get_handle() == ob.get_handle()]) > 0:
                 self._grasped = 1
-                self._init_distance = self._distance_to_goal(1)
+                self._init_distance = self._distance_to_goal(self._grasped)
                 self._prev_distance = self._init_distance
                 return 1
 
-        # else
-        return 0
-        distance = self._distance_to_goal(self._grasped)
-        reward = (self._prev_distance - distance) / self._init_distance
-        self._prev_distance = distance
-        return reward
-        
-    def _distance_to_goal(self, index):
-        targets = [self.target_block, self.success_detector]
-        target = targets[index]
-        tip_pos = self.robot.arm.get_tip().get_position()
-        goal_pos = target.get_position()
-        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
+        # if block grasped
+        if self._grasped == 1:
+            if len([ob for ob in self.robot.gripper.get_grasped_objects()
+                    if self.target_block.get_handle() == ob.get_handle()]) == 0:
+                self._grasped = 0
+                self._init_distance = self._distance_to_goal(self._grasped)
+                self._prev_distance = self._init_distance
+                return -1
+
+        if self._reward == 'sparse':
+            return 0
+        elif self._reward == 'dist':
+            distance = self._distance_to_goal(self._grasped)
+            # return - distance  / (100 * self._init_distance)
+            return 1 / (self._reward_scale * (1 + 10 * (distance  / self._init_distance)))
+        elif self._reward == 'delta-dist':
+            distance = self._distance_to_goal(self._grasped)
+            return (self._prev_distance - distance) / (self._reward_scale * self._init_distance)
+        else:
+            raise ValueError
+
+    @staticmethod
+    def reward_from_demo(demo, reward="sparse", reward_scale=100):
+        assert reward in ['sparse', 'dist', 'delta-dist']
+
+        def distance(ob, i, grasp_index):
+            if i <= grasp_index:
+                return np.linalg.norm(
+                    ob.gripper_pose[:3] - ob.task_low_dim_state[:3])
+            else:
+                return np.linalg.norm(
+                    ob.gripper_pose[:3] - ob.task_low_dim_state[3:])
+
+        grasp_index = len(demo)
+        for i, ob in enumerate(demo):
+            if distance(ob, 0, grasp_index) < 0.01:
+                grasp_index = i
+                break
+        assert grasp_index < len(demo)
+
+        if reward == 'sparse':
+            rew = [0] * (len(demo) - 2) + [1]
+        elif reward == 'dist':
+            init_distance = distance(demo[0], 0, grasp_index)
+            rew = [
+                1 / (reward_scale * (1 + 10 * (distance(demo[i+1], i, grasp_index)  / init_distance)))
+                for i in range(len(demo[1:-1]))] + [1]
+        elif reward == 'delta-dist':
+            init_distance = distance(demo[0], 0, grasp_index)
+            rew = [
+                (distance(demo[i], i, grasp_index) - distance(demo[i+1], i, grasp_index)) / (
+                    reward_scale * init_distance)
+                for i in range(len(demo[1:-1]))] + [1]
+        else:
+            raise ValueError
+        rew[grasp_index] = 1
+        return rew

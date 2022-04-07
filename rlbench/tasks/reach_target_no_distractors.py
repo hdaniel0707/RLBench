@@ -58,6 +58,11 @@ class ReachTargetNoDistractors(Task):
     def is_static_workspace(self) -> bool:
         return True
 
+    def _distance_to_goal(self):
+        tip_pos = self.robot.arm.get_tip().get_position()
+        goal_pos = self.target.get_position()
+        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
+
     def reward(self, terminate):
         if terminate:
             return 1
@@ -96,8 +101,3 @@ class ReachTargetNoDistractors(Task):
                 for i in range(len(demo[1:-1]))] + [1]
         else:
             raise ValueError
-
-    def _distance_to_goal(self):
-        tip_pos = self.robot.arm.get_tip().get_position()
-        goal_pos = self.target.get_position()
-        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))

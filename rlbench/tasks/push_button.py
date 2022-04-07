@@ -75,6 +75,11 @@ class PushButton(Task):
         # One of the few tasks that have a custom low_dim_state function.
         return np.array(self.target_button.get_position())
 
+    def _distance_to_goal(self):
+        tip_pos = self.robot.arm.get_tip().get_position()
+        goal_pos = self.target_button.get_position()
+        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
+
     def reward(self, terminate):
         if terminate:
             return 1
@@ -113,8 +118,3 @@ class PushButton(Task):
                 for i in range(len(demo[1:-1]))] + [1]
         else:
             raise ValueError
-
-    def _distance_to_goal(self):
-        tip_pos = self.robot.arm.get_tip().get_position()
-        goal_pos = self.target_button.get_position()
-        return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
