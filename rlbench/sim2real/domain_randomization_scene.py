@@ -77,8 +77,8 @@ class DomainRandomizationScene(Scene):
                         self.pyrep.group_objects(ungrouped)
                     text_ob.remove()
 
-    def init_task(self) -> None:
-        super().init_task()
+    def init_task(self, kwargs: dict) -> None:
+        super().init_task(kwargs)
 
     def init_episode(self, index: int, *args, **kwargs) -> List[str]:
         ret = super().init_episode(index, *args, **kwargs)
