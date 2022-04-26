@@ -70,6 +70,7 @@ from rlbench.tasks.put_umbrella_in_umbrella_stand import \
 from rlbench.tasks.reach_and_drag import ReachAndDrag
 from rlbench.tasks.reach_target import ReachTarget
 from rlbench.tasks.reach_target_no_distractors import ReachTargetNoDistractors
+from rlbench.tasks.reach_button import ReachButton
 from rlbench.tasks.multi_blocks import MultiBlocks
 from rlbench.tasks.remove_cups import RemoveCups
 from rlbench.tasks.scoop_with_spatula import ScoopWithSpatula

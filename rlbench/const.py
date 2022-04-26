@@ -9,6 +9,7 @@ from pyrep.robots.end_effectors.jaco_gripper import JacoGripper
 from pyrep.robots.end_effectors.mico_gripper import MicoGripper
 from pyrep.robots.end_effectors.panda_gripper import PandaGripper
 from pyrep.robots.end_effectors.robotiq85_gripper import Robotiq85Gripper
+from pyrep.robots.end_effectors.robotiq140_gripper import Robotiq140Gripper
 
 
 colors = [
@@ -49,7 +50,8 @@ SUPPORTED_ROBOTS = {
     # 'mico': (Mico, MicoGripper, 6),
     # 'sawyer': (Sawyer, BaxterGripper, 7),
     'ur5': (UR5, Robotiq85Gripper, 6, 'task_design_ur5.ttt'),
-    'ur3robotiq': (UR3, Robotiq85Gripper, 6, 'task_design_ur3robotiq.ttt'),
+    'ur3robotiq85': (UR3, Robotiq85Gripper, 6, 'task_design_ur3robotiq85.ttt'),
+    'ur3robotiq140': (UR3, Robotiq140Gripper, 6, 'task_design_ur3robotiq140.ttt'),
     'ur3baxter': (UR3, BaxterGripper, 6, 'task_design_ur3baxter.ttt'),
     'ur3panda': (UR3, PandaGripper, 6, 'task_design_ur3panda.ttt')
 }

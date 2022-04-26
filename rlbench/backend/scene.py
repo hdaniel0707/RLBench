@@ -104,7 +104,7 @@ class Scene(object):
         self.task = None
         self._variation_index = 0
 
-    def init_task(self, kwargs: dict) -> None:
+    def init_task(self, kwargs: dict = {}) -> None:
         self.task.init_task(**kwargs)
         self._initial_task_state = self.task.get_state()
         self._has_init_task = True
