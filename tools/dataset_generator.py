@@ -210,10 +210,12 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
         obs_config.wrist_camera.render_mode = RenderMode.OPENGL
         obs_config.front_camera.render_mode = RenderMode.OPENGL
 
+    # from rlbench import RandomizeEvery
     rlbench_env = Environment(
         action_mode=MoveArmThenGripper(JointVelocity(), Discrete()),
         obs_config=obs_config,
         robot_setup=FLAGS.robot,
+        # randomize_every=RandomizeEvery.EPISODE,
         headless=True)
     rlbench_env.launch()
 
