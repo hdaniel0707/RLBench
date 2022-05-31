@@ -8,7 +8,7 @@ import numpy as np
 
 class PressSwitch(Task):
 
-    def init_task(self) -> None:
+    def init_task(self, reward="sparse", reward_scale=100) -> None:
         self._switch_joint = Joint('joint')
         self.register_success_conditions([JointCondition(self._switch_joint, 1.0)])
 
@@ -27,7 +27,7 @@ class PressSwitch(Task):
         return 0
 
     @staticmethod
-    def reward_from_demo(demo): # TODO integrate with reward
+    def reward_from_demo(demo, reward="sparse", reward_scale=100):
         return [0] * (len(demo) - 2) + [1]
 
     def get_low_dim_state(self) -> np.ndarray:
