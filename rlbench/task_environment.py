@@ -94,10 +94,10 @@ class TaskEnvironment(object):
             raise RuntimeError(
                 "Call 'reset' before calling 'step' on a task.")
         self._action_mode.action(self._scene, action)
-        success, terminate = self._task.success()
+        success, terminate, info = self._task.success()
         task_reward = self._task.reward(terminate)
         reward = float(success) if task_reward is None else task_reward
-        return self._scene.get_observation(), reward, terminate
+        return self._scene.get_observation(), reward, terminate, info
 
     def get_demos(self, amount: int, live_demos: bool = False,
                   image_paths: bool = False,

@@ -293,11 +293,11 @@ class Task(object):
         all_fails_met = np.all(
             [cond.condition_met()[0] for cond in self._fail_conditions])
         if len(self._fail_conditions) > 0 and all_fails_met:
-            return False, True
+            return False, True, {}
         all_met = np.all(
             [cond.condition_met()[0] for cond in self._success_conditions])
         should_terminate = all_met
-        return all_met, should_terminate
+        return all_met, should_terminate, {}
 
     def load(self) -> Object:
         if Object.exists(self.name):

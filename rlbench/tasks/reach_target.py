@@ -22,6 +22,10 @@ class ReachTarget(Task):
         success_sensor = ProximitySensor('success')
         self.register_success_conditions(
             [DetectedCondition(self.robot.arm.get_tip(), success_sensor)])
+        self._failure1_condition = DetectedCondition(
+            self.robot.arm.get_tip(), ProximitySensor('failure1'))
+        self._failure2_condition = DetectedCondition(
+            self.robot.arm.get_tip(), ProximitySensor('failure2'))
 
     def init_episode(self, index: int) -> List[str]:
         self._index = index
@@ -30,6 +34,7 @@ class ReachTarget(Task):
         color_choices = np.random.choice(
             list(range(index)) + list(range(index + 1, len(colors))),
             size=2, replace=False)
+        self._distractor_index = color_choices
         for ob, i in zip([self.distractor0, self.distractor1], color_choices):
             name, rgb = colors[i]
             ob.set_color(rgb)
@@ -94,6 +99,9 @@ class ReachTarget(Task):
         return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
 
     def reward(self, terminate):
+        
+
+
         if terminate:
             return 1
 
@@ -131,3 +139,19 @@ class ReachTarget(Task):
                 for i in range(len(demo[1:-1]))] + [1]
         else:
             raise ValueError
+
+    def success(self) -> Tuple[bool, bool]:
+        """If the task is currently successful.
+
+        :return: Tuple containing 2 bools: first specifies if the task is currently successful,
+            second specifies if the task should terminate (either from success or from broken constraints).
+        """
+        if self._failure1_condition.met()[0]:
+            return False, True, {'reached_goal': self._distractor_index[0]}
+        if self._failure2_condition.met()[0]:
+            return False, True, {'reached_goal': self._distractor_index[1]}
+
+        all_met = np.all(
+            [cond.condition_met()[0] for cond in self._success_conditions])
+        should_terminate = all_met
+        return all_met, should_terminate, {}
