@@ -43,5 +43,5 @@ setup(name='rlbench',
             'rlbench.action_modes',
       ],
       package_data={'': ['*.ttm', '*.obj', '**/**/*.ttm', '**/**/*.obj'],
-                    'rlbench': ['task_design.ttt']},
+                    'rlbench': ['*.ttt']},
       )
