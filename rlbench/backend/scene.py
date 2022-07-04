@@ -368,7 +368,7 @@ class Scene(object):
                     done = path.step()
                     self.step()
                     self._demo_record_step(demo, record, callable_each_step)
-                    success, term = self.task.success()
+                    success, term, info = self.task.success()
 
                 point.end_of_path()
 
@@ -432,11 +432,11 @@ class Scene(object):
                 self.pyrep.step()
                 self.task.step()
                 self._demo_record_step(demo, record, callable_each_step)
-                success, term = self.task.success()
+                success, term, info = self.task.success()
                 if success:
                     break
 
-        success, term = self.task.success()
+        success, term, info = self.task.success()
         if not success:
             raise DemoError('Demo was completed, but was not successful.',
                             self.task)

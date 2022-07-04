@@ -10,10 +10,11 @@ from rlbench.backend.conditions import DetectedCondition
 
 class ReachTarget(Task):
 
-    def init_task(self, reward="sparse", reward_scale=100) -> None:
+    def init_task(self, reward="sparse", reward_scale=100, variations=[]) -> None:
         assert reward in ['sparse', 'dist', 'delta-dist']
         self._reward = reward
         self._reward_scale = reward_scale
+        self._variations = variations if len(variations) > 1 else list(range(len(colors)))
 
         self.target = Shape('target')
         self.distractor0 = Shape('distractor0')
@@ -22,18 +23,25 @@ class ReachTarget(Task):
         success_sensor = ProximitySensor('success')
         self.register_success_conditions(
             [DetectedCondition(self.robot.arm.get_tip(), success_sensor)])
+        self._failure0_condition = DetectedCondition(
+            self.robot.arm.get_tip(), ProximitySensor('failure0'))
         self._failure1_condition = DetectedCondition(
             self.robot.arm.get_tip(), ProximitySensor('failure1'))
-        self._failure2_condition = DetectedCondition(
-            self.robot.arm.get_tip(), ProximitySensor('failure2'))
 
     def init_episode(self, index: int) -> List[str]:
         self._index = index
         color_name, color_rgb = colors[index]
+        print(color_name)
         self.target.set_color(color_rgb)
+        # color_choices = np.random.choice(
+        #     list(range(index)) + list(range(index + 1, len(colors))),
+        #     size=2, replace=False)
+        var_idx = self._variations.index(index)
         color_choices = np.random.choice(
-            list(range(index)) + list(range(index + 1, len(colors))),
+            list(range(var_idx)) + list(range(var_idx + 1, len(self._variations))),
             size=2, replace=False)
+        color_choices = [self._variations[i] for i in color_choices]
+
         self._distractor_index = color_choices
         for ob, i in zip([self.distractor0, self.distractor1], color_choices):
             name, rgb = colors[i]
@@ -99,9 +107,6 @@ class ReachTarget(Task):
         return np.linalg.norm(np.array(tip_pos) - np.array(goal_pos))
 
     def reward(self, terminate):
-        
-
-
         if terminate:
             return 1
 
@@ -118,7 +123,7 @@ class ReachTarget(Task):
             raise ValueError
 
     @staticmethod
-    def reward_from_demo(demo, reward="sparse", reward_scale=100):
+    def reward_from_demo(demo, reward="sparse", reward_scale=100, variations=[]):
         assert reward in ['sparse', 'dist', 'delta-dist']
 
         def distance(ob):
@@ -146,9 +151,9 @@ class ReachTarget(Task):
         :return: Tuple containing 2 bools: first specifies if the task is currently successful,
             second specifies if the task should terminate (either from success or from broken constraints).
         """
-        if self._failure1_condition.met()[0]:
+        if self._failure0_condition.condition_met()[0]:
             return False, True, {'reached_goal': self._distractor_index[0]}
-        if self._failure2_condition.met()[0]:
+        if self._failure1_condition.condition_met()[0]:
             return False, True, {'reached_goal': self._distractor_index[1]}
 
         all_met = np.all(

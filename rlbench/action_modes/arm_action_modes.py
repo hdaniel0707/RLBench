@@ -231,7 +231,7 @@ class EndEffectorPoseViaPlanning(ArmActionMode):
         while not done:
             done = path.step()
             scene.step()
-            success, terminate = scene.task.success()
+            success, terminate, info = scene.task.success()
             # If the task succeeds while traversing path, then break early
             if success:
                 break
