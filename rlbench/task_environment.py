@@ -95,7 +95,7 @@ class TaskEnvironment(object):
                 "Call 'reset' before calling 'step' on a task.")
         self._action_mode.action(self._scene, action)
         success, terminate, info = self._task.success()
-        task_reward = self._task.reward(success) # TODO was terminate but I think success makes more sense
+        task_reward = self._task.reward(success) # TODO (jesus) was terminate but I think success makes more sense
         reward = float(success) if task_reward is None else task_reward
         if terminate and success: info["success"] = True
         if terminate and not success: info["failure"] = True
