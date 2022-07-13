@@ -155,7 +155,7 @@ class LoadedTask(object):
             self.scene.get_demo(False, randomly_place=False)
         except (WaypointError, NoWaypointsError, DemoError, Exception) as e:
             traceback.print_exc()
-        success, terminate = self.task.success()
+        success, terminate, _ = self.task.success()
         if success:
             print("Demo was a success!")
         self.scene.reset()
