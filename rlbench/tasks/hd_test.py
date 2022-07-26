@@ -26,7 +26,7 @@ class HdTest(Task):
 
         block_color_name, block_rgb = colors[index]
         self.block.set_color(block_rgb)
-        print(block_color_name)
+        #print(block_color_name)
 
         self.boundary.clear()
         self.boundary.sample(self.block)
@@ -56,34 +56,35 @@ class HdTest(Task):
         block_pos = self.block.get_position()
         target_pos = self.target.get_position()
 
-        print("--------------------------")
-        print(block_pos)
-        print(target_pos)
+        # print("--------------------------")
+        # print(block_pos)
+        # print(target_pos)
 
         dx =  target_pos[0] - block_pos[0]
         dy =  target_pos[1] - block_pos[1]
 
-        print("--------------------------")
-        print(dx)
-        print(dy)
+        # print("--------------------------")
+        # print(dx)
+        # print(dy)
 
         alpha = math.atan(dy / dx)
 
-        print("--------------------------")
-        print(alpha)
+        # print("--------------------------")
+        # print(alpha)
 
         pos_x = math.cos(alpha) * 0.15
         pos_y = math.sin(alpha) * 0.15
 
-        print("--------------------------")
-        print(pos_x)
-        print(pos_y)
+        # print("--------------------------")
+        # print(pos_x)
+        # print(pos_y)
 
         if block_pos[0] < target_pos[0]:
             pos_x = -pos_x
 
         if block_pos[1] < target_pos[1]:
             pos_y = -pos_y
+
 
         way_obj = waypoint.get_waypoint_object()
         #way_obj.set_position([pos_x,pos_y,0],relative_to=self.block)
