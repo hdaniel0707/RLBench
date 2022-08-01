@@ -2,14 +2,15 @@ import os
 import sys
 from os.path import join, dirname, abspath, isfile
 import math
+import numpy as np
 
 from rlbench.observation_config import ObservationConfig, CameraConfig
 from pyrep.const import RenderMode
 
 from rlbench.environment import Environment
-from rlbench.action_modes.action_mode import ActionMode
+from rlbench.action_modes.action_mode import ActionMode, MoveArmThenGripper
 from rlbench.action_modes.arm_action_modes import ArmActionMode, JointPosition
-from rlbench.action_modes.gripper_action_modes import GripperActionMode
+from rlbench.action_modes.gripper_action_modes import GripperActionMode, Discrete
 
 from rlbench.task_environment import TaskEnvironment
 #from rlbench.backend.task import Task
@@ -27,11 +28,11 @@ obs_config.wrist_camera = cam_config
 obs_config.front_camera = cam_config
 
 
-arm_action_mode = ArmActionMode()
-joint_action_mode = JointPosition(arm_action_mode)
-gripper_action_mode = GripperActionMode()
+#arm_action_mode = ArmActionMode()
+joint_action_mode = JointPosition()
+gripper_action_mode = Discrete()
 
-act_mode = ActionMode(joint_action_mode,gripper_action_mode)
+act_mode = MoveArmThenGripper(joint_action_mode,gripper_action_mode)
 
 env = Environment(action_mode = act_mode, obs_config= obs_config,robot_setup = 'ur3baxter')
 
@@ -45,8 +46,8 @@ print(task_env.get_name())
 
 
 task_env.reset()
-for i in range (100):
-    action = [math.pi,math.pi,math.pi,math.pi,math.pi,math.pi]
+for i in range (1000):
+    action = np.array([math.pi,math.pi,math.pi,math.pi,math.pi,math.pi,1])
     observation, reward, done, info = task_env.step(action)
     #print(i)
 
