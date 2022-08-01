@@ -58,7 +58,7 @@ print(joint0)
 
 task_env.reset()
 
-for _ in range(3):
+for _ in range(1):
     for i in range (200):
 
         action = np.array([joint0[i], -0.3, -0.164, -0.22, 1.884, -0.314,1])
@@ -70,5 +70,7 @@ for _ in range(3):
         print(reward)
         print(done)
         print(info)
+        print(observation.front_rgb)
+        print(observation.wrist_rgb)
 
 env.shutdown()
