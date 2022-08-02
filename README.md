@@ -2,10 +2,10 @@
 
 ![task grid image missing](readme_files/task_grid.png)
 
-**RLBench** is an ambitious large-scale benchmark and learning environment 
+**RLBench** is an ambitious large-scale benchmark and learning environment
 designed to facilitate research in a number of vision-guided manipulation
 research areas, including: reinforcement learning, imitation learning,
-multi-task learning, geometric computer vision, and in particular, 
+multi-task learning, geometric computer vision, and in particular,
 few-shot learning. [Click here for website and paper.](https://sites.google.com/corp/view/rlbench)
 
 **Contents:**
@@ -57,7 +57,7 @@ few-shot learning. [Click here for website and paper.](https://sites.google.com/
 
 ## Install
 
-RLBench is built around PyRep and V-REP. First head to the 
+RLBench is built around PyRep and V-REP. First head to the
 [PyRep github](https://github.com/stepjam/PyRep) page and install.
 
 **If you previously had PyRep installed, you will need to update your installation!**
@@ -68,6 +68,12 @@ Now lets install RLBench:
 ```bash
 pip install -r requirements.txt
 pip install .
+```
+
+(hdaniel) I used pip3 instead of pip:
+```bash
+pip3 install -r requirements.txt
+pip3 install .
 ```
 
 And that's it!
@@ -100,13 +106,13 @@ To render with the second GPU, you will insetad set display as: `export DISPLAY=
 
 ## Getting Started
 
-The benchmark places particular emphasis on few-shot learning and meta learning 
-due to breadth of tasks available, though it can be used in numerous ways. Before using RLBench, 
+The benchmark places particular emphasis on few-shot learning and meta learning
+due to breadth of tasks available, though it can be used in numerous ways. Before using RLBench,
 checkout the [Gotchas](#gotchas) section.
 
 ### Few-Shot Learning and Meta Learning
 
-We have created splits of tasks called 'Task Sets', which consist of a 
+We have created splits of tasks called 'Task Sets', which consist of a
 collection of X training tasks and 5 tests tasks. Here X can be 10, 25, 50, or 95.
 For example, to work on the task set with 10 training tasks, we import `FS10_V1`:
 
@@ -183,7 +189,7 @@ action_mode = MoveArmThenGripper(
   gripper_action_mode=Discrete()
 )
 env = Environment(
-    action_mode, randomize_every=RandomizeEvery.EPISODE, 
+    action_mode, randomize_every=RandomizeEvery.EPISODE,
     frequency=1, visual_randomization_config=rand_config)
 
 env.launch()
@@ -232,7 +238,7 @@ A full example can be seen in [examples/imitation_learning.py](examples/imitatio
 
 ### Multi-Task Learning
 
-We have created splits of tasks called 'Task Sets', which consist of a 
+We have created splits of tasks called 'Task Sets', which consist of a
 collection of X training tasks. Here X can be 15, 30, 55, or 100.
 For example, to work on the task set with 15 training tasks, we import `MT15_V1`:
 
@@ -295,8 +301,8 @@ A full example can be seen in [examples/rlbench_gym.py](examples/rlbench_gym.py)
 ### Swapping Arms
 
 The default Franka Panda Arm _can_ be swapped out for another. This can be
-useful for those who have custom tasks or want to perform sim-to-real 
-experiments on the tasks. However, if you swap out the arm, then we can't 
+useful for those who have custom tasks or want to perform sim-to-real
+experiments on the tasks. However, if you swap out the arm, then we can't
 guarantee that the task will be solvable.
 For example, the Mico arm has a very small workspace in comparison to the
 Franka.
@@ -321,7 +327,7 @@ A full example (using the Sawyer) can be seen in [examples/swap_arm.py](examples
 
 _Don't see the arm that you want to use?_ Your first step is to make sure it is
 in PyRep, and if not, then you can follow the instructions for importing new
-arm on the PyRep GitHub page. After that, feel free to open an issue and 
+arm on the PyRep GitHub page. After that, feel free to open an issue and
 we can being it in to RLBench for you.
 
 ## Tasks
@@ -332,10 +338,10 @@ To see gifs of each of the tasks, [see here](https://drive.google.com/drive/fold
 
 ## Task Building
 
-The task building tool is the interface for users who wish to create new tasks 
-to be added to the RLBench task repository. Each task has 2 associated files: 
-a V-REP model file (_.ttm_), which holds all of the scene information and demo 
-waypoints, and a python (_.py_) file, which is responsible for wiring the 
+The task building tool is the interface for users who wish to create new tasks
+to be added to the RLBench task repository. Each task has 2 associated files:
+a V-REP model file (_.ttm_), which holds all of the scene information and demo
+waypoints, and a python (_.py_) file, which is responsible for wiring the
 scene objects to the RLBench backend, applying variations, defining success
 criteria, and adding other more complex task behaviours.
 
@@ -347,14 +353,14 @@ In-depth text tutorials:
 
 ## Gotchas!
 
-- **Using low-dimensional task observations (rather than images):** RLBench was designed to be challenging, putting emphasis on vision rather than 
+- **Using low-dimensional task observations (rather than images):** RLBench was designed to be challenging, putting emphasis on vision rather than
 toy-based low dimensional inputs. Although each task does supply a low-dimensional
 output this should be used with extreme caution!
     - Why? Imagine you are training a reinforcement learning agent to pick up a block; halfway through
     training, the block slips from the gripper and falls of the table. These low-dimensional values
-    will now be out of distribution. I.e. RLBench does not safeguard against objects going out of the 
-    workspace. This issue does not arise when using image-based observations. 
-    
+    will now be out of distribution. I.e. RLBench does not safeguard against objects going out of the
+    workspace. This issue does not arise when using image-based observations.
+
 - **Using non-standard image size:** RLBench by default uses image observation sizes of 128x128.
 When using an alternative size, be aware that you may need to collect your saved demonstrations again.
     - Why? If we instead specify a 64x64 image observation size to the `ObservationConfig` then the
@@ -363,11 +369,11 @@ When using an alternative size, be aware that you may need to collect your saved
     This resizing will of course mean that small artifacts may be present in stored demos
     that may not be present in the 'live' observations from the scene. Instead, prefer to re-collect demos
     using the image observation sized you plan to use in the 'live' environment.
-    
+
 
 ## Contributing
 
-New tasks using our task building tool, in addition to bug fixes, are very 
+New tasks using our task building tool, in addition to bug fixes, are very
 welcome! When building your task, please ensure that you run the task validator
 in the task building tool.
 
@@ -375,7 +381,7 @@ A full contribution guide is coming soon!
 
 ## Acknowledgements
 
-Models were supplied from turbosquid.com, cgtrader.com, free3d.com, 
+Models were supplied from turbosquid.com, cgtrader.com, free3d.com,
 thingiverse.com, and cadnav.com.
 
 ## Citation
