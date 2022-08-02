@@ -115,7 +115,7 @@ class Task(object):
         """Called each time the simulation is stepped. Can usually be left."""
         pass
 
-    def reward(self) -> Union[float, None]:
+    def reward(self, dummy) -> Union[float, None]:
         """Allows the user to customise the task and add reward shaping."""
         return None
 
