@@ -21,6 +21,7 @@ from rlbench.task_environment import TaskEnvironment
 
 DIR_PATH = dirname(abspath(__file__))
 
+# Test 02
 
 class Environment(object):
     """Each environment has a scene."""
