@@ -404,6 +404,19 @@ class FlatEndEffectorPoseViaPlanning(EndEffectorPoseViaPlanning):
     def action_shape(self, scene: Scene) -> tuple:
         return 2,
 
+class FlatOnlyEndEffectorPoseViaPlanning(EndEffectorPoseViaPlanning):
+
+    DEFAULT_Z = .77
+
+    def action(self, scene: Scene, action: np.ndarray):
+
+        action = np.concatenate((action[:2],[self.DEFAULT_Z], action[2:]))
+
+        return super().action(scene, action)
+
+    def action_shape(self, scene: Scene) -> tuple:
+        return 6,
+
 
 class EndEffectorPoseViaIK(ArmActionMode):
     """High-level action where target pose is given and reached via IK.

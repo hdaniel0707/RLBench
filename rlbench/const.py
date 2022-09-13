@@ -54,6 +54,7 @@ SUPPORTED_ROBOTS = {
     'ur3robotiq140': (UR3, Robotiq140Gripper, 6, 'task_design_ur3robotiq140.ttt'),
     'ur3baxter': (UR3, BaxterGripper, 6, 'task_design_ur3baxter.ttt'),
     'ur3baxter-smallworkspace': (UR3, BaxterGripper, 6, 'task_design_ur3baxter_smallworkspace.ttt'),
+    'ur3baxter-old-smallworkspace': (UR3, BaxterGripper, 6, 'task_design_ur3baxter_old_smallworkspace.ttt'),
     'ur3baxter-old': (UR3, BaxterGripper, 6, 'task_design_ur3baxter_old.ttt'),
     'ur3panda': (UR3, PandaGripper, 6, 'task_design_ur3panda.ttt')
 }
