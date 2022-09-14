@@ -39,6 +39,7 @@ from rlbench.tasks.open_window import OpenWindow
 from rlbench.tasks.open_wine_bottle import OpenWineBottle
 from rlbench.tasks.phone_on_base import PhoneOnBase
 from rlbench.tasks.pick_and_lift import PickAndLift
+from rlbench.tasks.pick_and_lift_no_distractors import PickAndLiftNoDistractors
 from rlbench.tasks.pick_and_lift_small import PickAndLiftSmall
 from rlbench.tasks.pick_up_cup import PickUpCup
 from rlbench.tasks.place_cups import PlaceCups
