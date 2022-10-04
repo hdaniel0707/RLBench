@@ -1,0 +1,101 @@
+import os
+from typing import List, Tuple
+from rlbench.backend.task import Task
+from rlbench.const import colors
+from rlbench.backend.conditions import ConditionSet, DetectedCondition
+from rlbench.backend.spawn_boundary import SpawnBoundary
+import numpy as np
+from pyrep.objects.shape import Shape
+from pyrep.objects.proximity_sensor import ProximitySensor
+from pyrep.objects.dummy import Dummy
+
+boundary_mins = [0.05, -0.15, 0.05]
+boundary_maxs = [0.35, 0.25 , 0.1]
+
+def sample_minirobot_parts(task_base, mass=0.1):
+    #assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../../../3dmodels/minirobot/')
+    assets_dir ="/home/daniel/sim2real_robotics/3dmodels/minirobot"
+    # samples = np.random.choice(
+    #     os.listdir(assets_dir), num_samples, replace=False)
+
+    #samples = ["base","arm","gripper"]
+    samples = ["red/base_red_tf","red/arm_red_tf","red/gripper_red_tf"]
+    #samples = ["box","box","box"]
+    created = []
+    for s in samples:
+        respondable = os.path.join(assets_dir, s + '.obj')
+        #respondable = os.path.join(assets_dir, 'box_tr.obj')
+        visual = os.path.join(assets_dir, s + '.obj')
+        print(visual)
+        resp = Shape.import_mesh(respondable, scaling_factor=0.05)
+        vis = Shape.import_mesh(visual, scaling_factor=0.05)
+        resp.set_renderable(False)
+        vis.set_renderable(True)
+        vis.set_parent(resp)
+        vis.set_dynamic(False)
+        vis.set_respondable(False)
+        resp.set_dynamic(True)
+        resp.set_mass(mass)
+        resp.set_respondable(True)
+        resp.set_model(True)
+        resp.set_parent(task_base)
+        created.append(resp)
+    return created
+
+
+class HdPickPlaceMinirobot(Task):
+
+    def init_task(self) -> None:
+        self.source_plane = Shape('source_plane')
+        self.target_plane = Shape('target_plane')
+        self.target_a = Shape('target_a')
+        self.target_b = Shape('target_b')
+        self.target_c = Shape('target_c')
+        self.spawn_boundary = SpawnBoundary([Shape('spawn_boundary')])
+        self.success_detector = ProximitySensor('success')
+        # self.register_success_conditions([
+        #     DetectedCondition(self.source_plane, self.success_detector)])
+
+        # self.success_detector0 = ProximitySensor('success0')
+        # self.success_detector1 = ProximitySensor('success1')
+
+    def init_episode(self, index: int) -> List[str]:
+        self._variation_index = index
+
+        self.minirobot_parts = sample_minirobot_parts(self.get_base())
+
+        self.x_pos = np.random.uniform(boundary_mins[0],boundary_maxs[0],3)
+        self.y_pos = np.random.uniform(boundary_mins[1],boundary_maxs[1],3)
+        self.z_pos = np.random.uniform(boundary_mins[2],boundary_maxs[2],3)
+        self.register_graspable_objects(self.minirobot_parts)
+
+        self.spawn_boundary.clear()
+
+        conditions = []
+        i = 0
+        for ob in self.minirobot_parts:
+            ob.set_position([self.x_pos[i], self.y_pos[i], self.z_pos[i]], relative_to=self.source_plane,reset_dynamics=False)
+            self.spawn_boundary.sample(ob, ignore_collisions=True, min_distance=0.05)
+            i+=1
+            conditions.append(DetectedCondition(ob, self.success_detector))
+
+        self.register_success_conditions(
+            [ConditionSet(conditions, simultaneously_met=True)])
+        # TODO: This is called at the start of each episode.
+
+
+    def variation_count(self) -> int:
+        # TODO: The number of variations for this task.
+        return 1
+
+    def step(self) -> None:
+        pass
+
+    def cleanup(self) -> None:
+        if self.minirobot_parts is not None:
+            [ob.remove() for ob in self.minirobot_parts if ob.still_exists()]
+            self.bin_objects = []
+        self.minirobot_parts = []
+
+    def is_static_workspace(self) -> bool:
+        return True
