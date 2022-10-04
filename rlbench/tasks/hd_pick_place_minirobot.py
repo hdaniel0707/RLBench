@@ -14,12 +14,15 @@ boundary_maxs = [0.35, 0.25 , 0.1]
 
 def sample_minirobot_parts(task_base, mass=0.1):
     #assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../../../3dmodels/minirobot/')
-    assets_dir ="/home/daniel/sim2real_robotics/3dmodels/minirobot"
+    #assets_dir ="/home/daniel/sim2real_robotics/3dmodels/minirobot"
+    assets_dir ="/home/daniel/sim2real_robotics/3dmodels/ycb/ycb"
     # samples = np.random.choice(
     #     os.listdir(assets_dir), num_samples, replace=False)
 
-    #samples = ["base","arm","gripper"]
-    samples = ["red/base_red_tf","red/arm_red_tf","red/gripper_red_tf"]
+
+    #samples = ["red/base_red_tf","red/arm_red_tf","red/gripper_red_tf"]
+    #samples = ["002_master_chef_can/poisson/textured"]
+    samples = ["003_cracker_box/google_16k/textured"]
     #samples = ["box","box","box"]
     created = []
     for s in samples:
@@ -27,8 +30,11 @@ def sample_minirobot_parts(task_base, mass=0.1):
         #respondable = os.path.join(assets_dir, 'box_tr.obj')
         visual = os.path.join(assets_dir, s + '.obj')
         print(visual)
-        resp = Shape.import_mesh(respondable, scaling_factor=0.05)
-        vis = Shape.import_mesh(visual, scaling_factor=0.05)
+        # resp = Shape.import_mesh(respondable, scaling_factor=0.05)
+        # vis = Shape.import_mesh(visual, scaling_factor=0.05)
+        resp = Shape.import_mesh(respondable, scaling_factor=1.0)
+        vis = Shape.import_mesh(visual, scaling_factor=1.0)
+        resp = resp.get_convex_decomposition()
         resp.set_renderable(False)
         vis.set_renderable(True)
         vis.set_parent(resp)
