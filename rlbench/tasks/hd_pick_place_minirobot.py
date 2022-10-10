@@ -9,10 +9,12 @@ from pyrep.objects.shape import Shape
 from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.objects.dummy import Dummy
 
+import math
+
 boundary_mins = [0.05, -0.15, 0.05]
 boundary_maxs = [0.35, 0.25 , 0.1]
 
-def sample_minirobot_parts(task_base, mass=0.1):
+def sample_minirobot_parts(task_base):
     #assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../../../3dmodels/minirobot/')
 
     assets_dir ="/home/daniel/sim2real_robotics/3dmodels/minirobot"
@@ -22,7 +24,10 @@ def sample_minirobot_parts(task_base, mass=0.1):
     #     os.listdir(assets_dir), num_samples, replace=False)
 
 
+    #samples = ["red/base_red_2_tf","red/arm_red_2_tf","red/gripper_red_2_tf"]
     samples = ["red/base_red_tf","red/arm_red_tf","red/gripper_red_tf"]
+    #samples = ["red/arm_red_tf_rot_2","red/arm_red_tf_rot_2","red/arm_red_tf_rot_2"]
+    #samples = ["red/box_ref_100mm"]
     #samples = ["048_hammer/google_16k/textured","042_adjustable_wrench/google_16k/textured","043_phillips_screwdriver/google_16k/textured"]
     #samples = ["box","box","box"]
 
@@ -44,9 +49,12 @@ def sample_minirobot_parts(task_base, mass=0.1):
         vis.set_dynamic(False)
         vis.set_respondable(False)
         resp.set_dynamic(True)
-        resp.set_mass(mass)
+        # resp.set_dynamic(False)
+        resp.set_mass(1.0)
         resp.set_respondable(True)
         resp.set_model(True)
+        # resp.set_respondable(False)
+        # resp.set_model(False)
         resp.set_parent(task_base)
         created.append(resp)
     return created
@@ -75,8 +83,18 @@ class HdPickPlaceMinirobot(Task):
 
         self.x_pos = np.random.uniform(boundary_mins[0],boundary_maxs[0],3)
         self.y_pos = np.random.uniform(boundary_mins[1],boundary_maxs[1],3)
-        self.z_pos = np.random.uniform(boundary_mins[2],boundary_maxs[2],3)
+        #self.z_pos = np.random.uniform(boundary_mins[2],boundary_maxs[2],3)
+        self.z_pos = np.array([0.03,0.01,0.01])
+        #self.z_pos = np.array([0.1,0.1,0.1])
         self.register_graspable_objects(self.minirobot_parts)
+
+        self.rot_1d = np.random.uniform(math.radians(0),math.radians(360),3)
+        # self.y_rot = np.random.uniform(math.radians(0),math.radians(360),3)
+        #self.z_rot = np.random.uniform(math.radians(0),math.radians(360),3)
+
+        self.x_rot = np.array([math.radians(0),math.radians(0),math.radians(0)])
+        self.y_rot = np.array([math.radians(90),math.radians(90),math.radians(90)])
+        self.z_rot = np.array([math.radians(0),math.radians(0),math.radians(0)])
 
         self.spawn_boundary.clear()
 
@@ -84,7 +102,13 @@ class HdPickPlaceMinirobot(Task):
         i = 0
         for ob in self.minirobot_parts:
             ob.set_position([self.x_pos[i], self.y_pos[i], self.z_pos[i]], relative_to=self.source_plane,reset_dynamics=False)
-            self.spawn_boundary.sample(ob, ignore_collisions=True, min_distance=0.05)
+            #ob.set_orientation([self.x_rot[i], self.y_rot[i], self.z_rot[i]],relative_to=self.source_plane, reset_dynamics=False)
+            self.spawn_boundary.sample(ob, ignore_collisions=False, min_distance=0.1)
+            #self.spawn_boundary.sample(ob)
+            ob.set_orientation([self.x_rot[i], self.y_rot[i], self.z_rot[i]],relative_to=self.source_plane, reset_dynamics=False)
+            #ob.rotate([self.rot_1d[i],0.0,0.0])
+            ob.rotate([0.0,0.0,0.0])
+            #ob.rotate([math.radians(270),0.0,0.0])
             i+=1
             conditions.append(DetectedCondition(ob, self.success_detector))
 
