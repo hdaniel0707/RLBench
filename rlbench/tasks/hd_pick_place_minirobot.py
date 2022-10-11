@@ -48,13 +48,15 @@ def sample_minirobot_parts(task_base):
         vis.set_parent(resp)
         vis.set_dynamic(False)
         vis.set_respondable(False)
-        resp.set_dynamic(True)
-        # resp.set_dynamic(False)
+
         resp.set_mass(1.0)
-        resp.set_respondable(True)
         resp.set_model(True)
-        # resp.set_respondable(False)
-        # resp.set_model(False)
+
+        #resp.set_dynamic(True)
+        #resp.set_respondable(True)
+        resp.set_dynamic(False)
+        resp.set_respondable(False)
+
         resp.set_parent(task_base)
         created.append(resp)
     return created
@@ -80,13 +82,14 @@ class HdPickPlaceMinirobot(Task):
         self._variation_index = index
 
         self.minirobot_parts = sample_minirobot_parts(self.get_base())
+        self.register_graspable_objects(self.minirobot_parts)
 
         self.x_pos = np.random.uniform(boundary_mins[0],boundary_maxs[0],3)
         self.y_pos = np.random.uniform(boundary_mins[1],boundary_maxs[1],3)
         #self.z_pos = np.random.uniform(boundary_mins[2],boundary_maxs[2],3)
-        self.z_pos = np.array([0.03,0.01,0.01])
-        #self.z_pos = np.array([0.1,0.1,0.1])
-        self.register_graspable_objects(self.minirobot_parts)
+        #self.z_pos = np.array([0.03,0.01,0.01])
+        self.z_pos = np.array([0.81,0.81,0.81])
+
 
         self.rot_1d = np.random.uniform(math.radians(0),math.radians(360),3)
         # self.y_rot = np.random.uniform(math.radians(0),math.radians(360),3)
@@ -101,14 +104,14 @@ class HdPickPlaceMinirobot(Task):
         conditions = []
         i = 0
         for ob in self.minirobot_parts:
-            ob.set_position([self.x_pos[i], self.y_pos[i], self.z_pos[i]], relative_to=self.source_plane,reset_dynamics=False)
+            ob.set_position([self.x_pos[i], self.y_pos[i], self.z_pos[i]],reset_dynamics=False)
             #ob.set_orientation([self.x_rot[i], self.y_rot[i], self.z_rot[i]],relative_to=self.source_plane, reset_dynamics=False)
             self.spawn_boundary.sample(ob, ignore_collisions=False, min_distance=0.1)
             #self.spawn_boundary.sample(ob)
-            ob.set_orientation([self.x_rot[i], self.y_rot[i], self.z_rot[i]],relative_to=self.source_plane, reset_dynamics=False)
+            ob.set_orientation([self.x_rot[i], self.y_rot[i], self.z_rot[i]], reset_dynamics=False)
             #ob.rotate([self.rot_1d[i],0.0,0.0])
-            ob.rotate([0.0,0.0,0.0])
-            #ob.rotate([math.radians(270),0.0,0.0])
+            #ob.rotate([0.0,0.0,0.0])
+            ob.rotate([math.radians(0),0.0,0.0])
             i+=1
             conditions.append(DetectedCondition(ob, self.success_detector))
 
