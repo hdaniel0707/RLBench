@@ -49,13 +49,13 @@ def sample_minirobot_parts(task_base):
         vis.set_dynamic(False)
         vis.set_respondable(False)
 
-        resp.set_mass(1.0)
+        resp.set_mass(0.75)
         resp.set_model(True)
 
-        #resp.set_dynamic(True)
-        #resp.set_respondable(True)
-        resp.set_dynamic(False)
-        resp.set_respondable(False)
+        resp.set_dynamic(True)
+        resp.set_respondable(True)
+        # resp.set_dynamic(False)
+        # resp.set_respondable(False)
 
         resp.set_parent(task_base)
         created.append(resp)
@@ -109,9 +109,9 @@ class HdPickPlaceMinirobot(Task):
             self.spawn_boundary.sample(ob, ignore_collisions=False, min_distance=0.1)
             #self.spawn_boundary.sample(ob)
             ob.set_orientation([self.x_rot[i], self.y_rot[i], self.z_rot[i]], reset_dynamics=False)
-            #ob.rotate([self.rot_1d[i],0.0,0.0])
+            ob.rotate([self.rot_1d[i],0.0,0.0])
             #ob.rotate([0.0,0.0,0.0])
-            ob.rotate([math.radians(0),0.0,0.0])
+            #ob.rotate([math.radians(180),0.0,0.0])
             i+=1
             conditions.append(DetectedCondition(ob, self.success_detector))
 
