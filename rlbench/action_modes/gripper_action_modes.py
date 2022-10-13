@@ -38,13 +38,10 @@ class Discrete(GripperActionMode):
 
     def _actuate(self, action, scene):
         done = False
-        # c = 0 # TODO remove
         while not done:
             done = scene.robot.gripper.actuate(action, velocity=0.2)
             scene.pyrep.step()
             scene.task.step()
-            # c += 1
-        # print("STEPS", c)
 
     def action(self, scene: Scene, action: np.ndarray):
         assert_action_shape(action, self.action_shape(scene.robot))

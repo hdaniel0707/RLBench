@@ -249,36 +249,6 @@ class EndEffectorPoseViaPlanning(ArmActionMode):
     def action_shape(self, scene: Scene) -> tuple:
         return 7,
 
-class FlatEndEffectorPoseViaPlanning(EndEffectorPoseViaPlanning):
-
-    DEFAULT_Z = .77
-    DEFAULT_QUATERNION = [0,1,0,0]
-
-    def action(self, scene: Scene, action: np.ndarray):
-
-        q = self.DEFAULT_QUATERNION
-        q = np.array(q) / np.linalg.norm(q)
-
-        action = np.concatenate((action,[self.DEFAULT_Z], q))
-
-        return super().action(scene, action)
-
-    def action_shape(self, scene: Scene) -> tuple:
-        return 2,
-
-class FlatOnlyEndEffectorPoseViaPlanning(EndEffectorPoseViaPlanning): # TODO remove
-
-    DEFAULT_Z = .77
-
-    def action(self, scene: Scene, action: np.ndarray):
-
-        action = np.concatenate((action[:2],[self.DEFAULT_Z], action[2:]))
-
-        return super().action(scene, action)
-
-    def action_shape(self, scene: Scene) -> tuple:
-        return 6,
-
 
 class EndEffectorPoseViaIK(ArmActionMode):
     """High-level action where target pose is given and reached via IK.
@@ -345,3 +315,66 @@ class EndEffectorPoseViaIK(ArmActionMode):
 
     def action_shape(self, scene: Scene) -> tuple:
         return 7,
+
+
+############################# JESUS
+
+
+class FlatEndEffectorPoseViaPlanning(EndEffectorPoseViaPlanning):
+
+    DEFAULT_Z = .77
+    DEFAULT_QUATERNION = [0,1,0,0]
+
+    def action(self, scene: Scene, action: np.ndarray):
+
+        q = self.DEFAULT_QUATERNION
+        q = np.array(q) / np.linalg.norm(q)
+
+        action = np.concatenate((action,[self.DEFAULT_Z], q))
+
+        return super().action(scene, action)
+
+    def action_shape(self, scene: Scene) -> tuple:
+        return 2,
+
+
+# class FlatOnlyEndEffectorPoseViaPlanning(EndEffectorPoseViaPlanning):
+
+#     DEFAULT_Z = .77
+
+#     def action(self, scene: Scene, action: np.ndarray):
+
+#         action = np.concatenate((action[:2],[self.DEFAULT_Z], action[2:]))
+
+#         return super().action(scene, action)
+
+#     def action_shape(self, scene: Scene) -> tuple:
+#         return 6,
+
+
+class FlatEndEffectorPoseViaIK(EndEffectorPoseViaIK):
+
+    DEFAULT_Z = .77
+    DEFAULT_QUATERNION = [0,1,0,0]
+    INIT_ACTION = FlatEndEffectorPoseViaPlanning(
+        absolute_mode=True, frame='world',
+        collision_checking=False, linear_only=False)
+
+    def action(self, scene: Scene, action: np.ndarray):
+
+        cur_tip = scene.robot.arm.get_tip().get_position()
+
+        q = self.DEFAULT_QUATERNION
+        q = np.array(q) / np.linalg.norm(q)
+
+        action = np.concatenate((
+            [cur_tip[0] + action[0], cur_tip[1] + action[1], self.DEFAULT_Z],
+            q))
+
+        if cur_tip[2] - self.DEFAULT_Z > .1:
+            self.INIT_ACTION.action(scene, np.array([0.3, cur_tip[1]]))
+
+        return super().action(scene, action)
+
+    def action_shape(self, scene: Scene) -> tuple:
+        return 2,

@@ -9,12 +9,6 @@ from rlbench.backend.scene import Scene
 
 class ActionMode(object):
 
-    def __init__(self,
-                 arm_action_mode: 'ArmActionMode',
-                 gripper_action_mode: 'GripperActionMode'):
-        self.arm_action_mode = arm_action_mode
-        self.gripper_action_mode = gripper_action_mode
-
     @abstractmethod
     def action(self, scene: Scene, action: np.ndarray):
         pass
@@ -26,6 +20,12 @@ class ActionMode(object):
 
 class MoveArmThenGripper(ActionMode):
     """The arm action is first applied, followed by the gripper action. """
+
+    def __init__(self,
+                 arm_action_mode: 'ArmActionMode',
+                 gripper_action_mode: 'GripperActionMode'):
+        self.arm_action_mode = arm_action_mode
+        self.gripper_action_mode = gripper_action_mode
 
     def action(self, scene: Scene, action: np.ndarray):
         arm_act_size = np.prod(self.arm_action_mode.action_shape(scene))
@@ -39,6 +39,8 @@ class MoveArmThenGripper(ActionMode):
             self.gripper_action_mode.action_shape(scene))
 
 
+# from rlbench.action_modes.arm_action_modes import EndEffectorPoseViaPlanning
+
 # class Primitives(ActionMode):
 #     """
 #     """
@@ -46,20 +48,36 @@ class MoveArmThenGripper(ActionMode):
 #     def __init__(self):
 #         """
 #         """
+
+#         # utilities for primitive "move"
+#         self._move_action_mode = EndEffectorPoseViaPlanning(
+#             absolute_mode=True, frame='world',
+#             collision_checking=False, linear_only=False)
+        
+#         # utilities for primitive "grasp"
+#         self._grasp_
+        
 #         self.primitive_idx_to_name = {
 #             0: "move",
 #             1: "grasp",
 #         }
 #         self.primitive_name_to_func = dict(
-#             move=self.move_delta_ee_pose,
-#             grasp=self.top_grasp,
+#             move=self._move_action_mode.action,
+#             grasp=self._top_grasp,
 #         )
 #         self.primitive_name_to_action_idx = dict(
-#             move=[0, 1, 2, 3, 4, 5],
-#             grasp=6,
+#             move=[0, 1, 2],
+#             grasp=[3, 4],
 #         )
-#         self.max_arg_len = 7
+#         self.max_arg_len = 5
 #         self.num_primitives = len(self.primitive_name_to_func)
+
+#     def _top_grasp(self, scene: Scene, action: np.ndarray):
+#         # change orientation with first parameter
+
+#         # go down with second parameter
+
+#         # grasp object
 
 #     def break_apart_action(self, a):
 #         broken_a = {}
@@ -67,23 +85,22 @@ class MoveArmThenGripper(ActionMode):
 #             broken_a[k] = a[v]
 #         return broken_a
 
-#     def act(self, a):
+#     def action(self, scene: Scene, action: np.ndarray):
 #         primitive_idx, primitive_args = (
-#             np.argmax(a[: self.num_primitives]),
-#             a[self.num_primitives :],
+#             np.argmax(action[: self.num_primitives]),
+#             action[self.num_primitives :],
 #         )
 #         primitive_name = self.primitive_idx_to_name[primitive_idx]
 #         # if primitive_name != "no_op":
 #         primitive_name_to_action_dict = self.break_apart_action(primitive_args)
 #         primitive_action = primitive_name_to_action_dict[primitive_name]
 #         primitive = self.primitive_name_to_func[primitive_name]
-#         stats = primitive(primitive_action)
-#         return stats
+#         primitive(scene, primitive_action)
 
-#     #robosuite
-#     def move_delta_ee_pose(self, pose):
-#         stats = self.goto_pose(self._eef_xpos + pose, grasp=True)
-#         return stats
+#         # success, terminate, info = scene.task.success()
+#         # reward = scene.task.reward(success)
+#         # stats = 
+#         # return stats
 
 #     def action_shape(self, scene: Scene) -> tuple:
 #         return self.max_arg_len + self.num_primitives
