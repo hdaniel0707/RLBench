@@ -1,4 +1,5 @@
 import os
+from os.path import join, dirname, abspath, isfile
 from typing import List, Tuple
 from rlbench.backend.task import Task
 from rlbench.const import colors
@@ -14,11 +15,13 @@ import math
 boundary_mins = [0.05, -0.15, 0.05]
 boundary_maxs = [0.35, 0.25 , 0.1]
 
-def sample_minirobot_parts(task_base):
-    #assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../../../3dmodels/minirobot/')
+CURRENT_DIR = dirname(abspath(__file__))
+TOP_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_DIR))))
 
-    assets_dir ="/home/daniel/sim2real_robotics/3dmodels/minirobot"
-    #assets_dir ="/home/daniel/sim2real_robotics/3dmodels/ycb-tools/models/ycb"
+def sample_minirobot_parts(task_base):
+
+    assets_dir = TOP_DIR+"/3dmodels/minirobot"
+    #assets_dir = TOP_DIR+"/3dmodels/ycb-tools/models/ycb"
 
     # samples = np.random.choice(
     #     os.listdir(assets_dir), num_samples, replace=False)
