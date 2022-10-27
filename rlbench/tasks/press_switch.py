@@ -17,6 +17,9 @@ class PressSwitch(Task):
                 'turn the switch on or off',
                 'flick the switch']
 
+    def base_rotation_bounds(self):
+        return (0.0, 0.0, 0.0), (0.0, 0.0, 0.0)
+
     def variation_count(self) -> int:
         return 1
 
