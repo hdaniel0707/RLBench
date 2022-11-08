@@ -98,7 +98,7 @@ class TaskEnvironment(object):
         task_reward = self._task.reward(success) # TODO (jesus) was terminate but I think success makes more sense
         reward = float(success) if task_reward is None else task_reward
         if terminate and success: info["success"] = True
-        if terminate and not success: info["failure"] = True
+        if terminate and not success: info["success"] = False
         return self._scene.get_observation(), reward, terminate, info
 
     def get_demos(self, amount: int, live_demos: bool = False,
