@@ -119,7 +119,7 @@ class Environment(object):
                 self._visual_randomization_config,
                 self._dynamics_randomization_config)
 
-        self._action_mode.arm_action_mode.set_control_mode(self._robot)
+        self._action_mode.set_control_mode(self._robot)
 
     def shutdown(self):
         if self._pyrep is not None:

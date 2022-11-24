@@ -17,6 +17,9 @@ class ActionMode(object):
     def action_shape(self, scene: Scene):
         pass
 
+    def set_control_mode(self, robot):
+        pass
+
 
 class MoveArmThenGripper(ActionMode):
     """The arm action is first applied, followed by the gripper action. """
@@ -38,72 +41,160 @@ class MoveArmThenGripper(ActionMode):
         return np.prod(self.arm_action_mode.action_shape(scene)) + np.prod(
             self.gripper_action_mode.action_shape(scene))
 
+    def set_control_mode(self, robot):
+        self.arm_action_mode.set_control_mode(robot)
 
-# from rlbench.action_modes.arm_action_modes import EndEffectorPoseViaPlanning
 
-# class Primitives(ActionMode):
-#     """
-#     """
 
-#     def __init__(self):
-#         """
-#         """
+from rlbench.action_modes.arm_action_modes import \
+    EndEffectorPoseViaPlanning, EndEffectorPoseViaIK, FlatEndEffectorPoseViaPlanning, JointPosition
+from rlbench.action_modes.gripper_action_modes import Discrete
 
-#         # utilities for primitive "move"
-#         self._move_action_mode = EndEffectorPoseViaPlanning(
-#             absolute_mode=True, frame='world',
-#             collision_checking=False, linear_only=False)
+from pyquaternion import Quaternion
+# In RLBench the quaternion: A list containing the quaternion (x,y,z,w).
+# In pyquaternion it is w,x,y,z
+def pyquat2rlbench(quat): # (w,x,y,z) --> (x,y,z,w)
+    return np.array([quat[1], quat[2], quat[3], quat[0]])
+def rlbench2pyquat(quat): # (x,y,z,w) --> (w,x,y,z)
+    return Quaternion(quat[3], quat[0], quat[1], quat[2])
+
+class Primitives(ActionMode):
+    """
+    """
+
+    def __init__(self, regrasping_strategy):
+        """
+        """
+
+        # utilities for all primitives
+        self._default_z = .87
+        self._default_quaternion = [0,1,0,0]
+        self._planning_ee_action_mode = EndEffectorPoseViaPlanning(
+            absolute_mode=True, frame='world',
+            collision_checking=False, linear_only=False)
         
-#         # utilities for primitive "grasp"
-#         self._grasp_
+        # utilities for primitive "grasp"
+        assert regrasping_strategy in ["nothing", "release", "mask"]
+        self._regrasping_strategy = regrasping_strategy
+        self._gripper_action_mode = Discrete(
+            attach_grasped_objects=True, detach_before_open=True)
+        self._ik_ee_action_mode = EndEffectorPoseViaIK(
+            absolute_mode=False, frame='world', collision_checking=False)
         
-#         self.primitive_idx_to_name = {
-#             0: "move",
-#             1: "grasp",
-#         }
-#         self.primitive_name_to_func = dict(
-#             move=self._move_action_mode.action,
-#             grasp=self._top_grasp,
-#         )
-#         self.primitive_name_to_action_idx = dict(
-#             move=[0, 1, 2],
-#             grasp=[3, 4],
-#         )
-#         self.max_arg_len = 5
-#         self.num_primitives = len(self.primitive_name_to_func)
+        self.primitive_idx_to_name = {
+            0: "move",
+            1: "grasp",
+        }
+        self.primitive_name_to_func = dict(
+            move=self._go_to,
+            grasp=self._top_grasp,
+        )
+        self.primitive_name_to_action_idx = dict(
+            move=[0, 1],
+            grasp=[2],
+        )
+        self.max_arg_len = 3
+        self.num_primitives = len(self.primitive_name_to_func)
 
-#     def _top_grasp(self, scene: Scene, action: np.ndarray):
-#         # change orientation with first parameter
+    def _primitive_mask(self, scene):
+        # grasping primitive can't be done if we already have a grasped object
+        mask = np.array([1.]*self.num_primitives)
+        if self._regrasping_strategy == "mask" and self._robot_is_grasping(scene):
+            mask[1] = 0
+        return mask
 
-#         # go down with second parameter
+    def _go_to(self, scene: Scene, action: np.ndarray):
+        q = self._default_quaternion
+        q = np.array(q) / np.linalg.norm(q)
+        a = np.concatenate(([action[0], action[1], self._default_z], q))
+        self._planning_ee_action_mode.action(scene, a)
 
-#         # grasp object
+    def _robot_is_grasping(self, scene):
+        return len(scene.robot.gripper.get_grasped_objects()) > 0
 
-#     def break_apart_action(self, a):
-#         broken_a = {}
-#         for k, v in self.primitive_name_to_action_idx.items():
-#             broken_a[k] = a[v]
-#         return broken_a
+    def _top_grasp(self, scene: Scene, action: np.ndarray):
+        if self._robot_is_grasping(scene):
+            if self._regrasping_strategy == "release":
+                self._gripper_action_mode.action(scene, np.array([1.0]))
+        else:
+            current_pos = scene.robot.arm.get_tip().get_position()
 
-#     def action(self, scene: Scene, action: np.ndarray):
-#         primitive_idx, primitive_args = (
-#             np.argmax(action[: self.num_primitives]),
-#             action[self.num_primitives :],
-#         )
-#         primitive_name = self.primitive_idx_to_name[primitive_idx]
-#         # if primitive_name != "no_op":
-#         primitive_name_to_action_dict = self.break_apart_action(primitive_args)
-#         primitive_action = primitive_name_to_action_dict[primitive_name]
-#         primitive = self.primitive_name_to_func[primitive_name]
-#         primitive(scene, primitive_action)
+            # open gripper
+            # self._gripper_action_mode.action(scene, np.array([1.0]))
 
-#         # success, terminate, info = scene.task.success()
-#         # reward = scene.task.reward(success)
-#         # stats = 
-#         # return stats
+            # set initial height and orientation
+            q = rlbench2pyquat(self._default_quaternion) # (x,y,z,w) --> (w,x,y,z)
+            z_rot = Quaternion(axis=[0, 0, 1], angle=action[0]) # rotate with first parameter
+            q = q * z_rot
+            q = pyquat2rlbench(q) # (w,x,y,z) --> (x,y,z,w)  
+            q = np.array(q) / np.linalg.norm(q)
+            a = np.concatenate(([current_pos[0], current_pos[1], self._default_z], q))
+            self._planning_ee_action_mode.action(scene, a)
 
-#     def action_shape(self, scene: Scene) -> tuple:
-#         return self.max_arg_len + self.num_primitives
+            # change orientation with first parameter
+            # target_pos = action[0]
+            # a = scene.robot.arm.get_joint_positions()
+            # a[-1] = target_pos
+            # scene.robot.arm.set_joint_positions(a, disable_dynamics=True)
+            # # while np.abs(scene.robot.arm.get_joint_positions()[-1] - target_pos) > 0.1:
+            # #     scene.step()
+            # scene.robot.arm.set_joint_target_positions(
+            #     scene.robot.arm.get_joint_positions())
+
+            # go down
+            a = np.array([0.]*7)
+            a[2] = -.1 # move -0.1 in the Z axis
+            a[-1] = 1 # identity quaternion
+            self._ik_ee_action_mode.action(scene, a)
+
+            # go down
+            # current_pose = scene.robot.arm.get_tip().get_pose()
+            # current_pose[2] = DEFAULT_Z - 0.1
+            # self._planning_ee_action_mode.action(scene, current_pose)
+
+            # grasp object
+            # print("gripper before", scene.robot.gripper.get_open_amount()) # TODO problem
+            self._gripper_action_mode.action(scene, np.array([0.0]))
+            # print("gripper after", scene.robot.gripper.get_open_amount())
+
+            # go up
+            a = np.array([0.]*7)
+            a[2] = .1 # move -0.1 in the Z axis
+            a[-1] = 1 # identity quaternion
+            self._ik_ee_action_mode.action(scene, a)
+
+            if not self._robot_is_grasping(scene):
+                self._gripper_action_mode.action(scene, np.array([1.0]))
+
+    def break_apart_action(self, a):
+        broken_a = {}
+        for k, v in self.primitive_name_to_action_idx.items():
+            broken_a[k] = a[v]
+        return broken_a
+
+    def action(self, scene: Scene, action: np.ndarray):
+        primitive_idx, primitive_args = (
+            np.argmax(action[: self.num_primitives]*self._primitive_mask(scene)),
+            action[self.num_primitives :],
+        )
+        primitive_name = self.primitive_idx_to_name[primitive_idx]
+        # if primitive_name != "no_op":
+        primitive_name_to_action_dict = self.break_apart_action(primitive_args)
+        primitive_action = primitive_name_to_action_dict[primitive_name]
+        primitive = self.primitive_name_to_func[primitive_name]
+        primitive(scene, primitive_action)
+
+        # success, terminate, info = scene.task.success()
+        # reward = scene.task.reward(success)
+        # stats = 
+        # return stats
+
+    def action_shape(self, scene: Scene) -> tuple:
+        return self.max_arg_len + self.num_primitives
+
+    def set_control_mode(self, robot):
+        self._planning_ee_action_mode.set_control_mode(robot)
+        self._ik_ee_action_mode.set_control_mode(robot)
 
 
 # class Primitives(ArmActionMode):
