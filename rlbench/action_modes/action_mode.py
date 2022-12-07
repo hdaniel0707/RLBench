@@ -46,6 +46,8 @@ class MoveArmThenGripper(ActionMode):
 
 
 
+### NEW ACTION MODE ADDED BY JESUS
+
 from rlbench.action_modes.arm_action_modes import \
     EndEffectorPoseViaPlanning, EndEffectorPoseViaIK, FlatEndEffectorPoseViaPlanning, JointPosition
 from rlbench.action_modes.gripper_action_modes import Discrete
@@ -58,11 +60,12 @@ def pyquat2rlbench(quat): # (w,x,y,z) --> (x,y,z,w)
 def rlbench2pyquat(quat): # (x,y,z,w) --> (w,x,y,z)
     return Quaternion(quat[3], quat[0], quat[1], quat[2])
 
+
 class Primitives(ActionMode):
     """
     """
 
-    def __init__(self, regrasping_strategy):
+    def __init__(self, behaviour_when_unavailable):
         """
         """
 
@@ -73,35 +76,78 @@ class Primitives(ActionMode):
             absolute_mode=True, frame='world',
             collision_checking=False, linear_only=False)
         
-        # utilities for primitive "grasp"
-        assert regrasping_strategy in ["nothing", "release", "mask"]
-        self._regrasping_strategy = regrasping_strategy
+        # utilities for primitives "grasp" and "release"
+        assert behaviour_when_unavailable in ["nothing", "mask"]
+        self._behaviour_when_unavailable = behaviour_when_unavailable
         self._gripper_action_mode = Discrete(
             attach_grasped_objects=True, detach_before_open=True)
         self._ik_ee_action_mode = EndEffectorPoseViaIK(
             absolute_mode=False, frame='world', collision_checking=False)
-        
+
         self.primitive_idx_to_name = {
             0: "move",
             1: "grasp",
+            2: "release",
         }
+        self.primitive_name_to_idx = {
+            v: k for k,v in self.primitive_idx_to_name.items()}
         self.primitive_name_to_func = dict(
             move=self._go_to,
             grasp=self._top_grasp,
+            release =self._top_release,
         )
         self.primitive_name_to_action_idx = dict(
             move=[0, 1],
             grasp=[2],
+            release=[],
         )
         self.max_arg_len = 3
         self.num_primitives = len(self.primitive_name_to_func)
 
+    def _robot_is_grasping(self, scene):
+        return len(scene.robot.gripper.get_grasped_objects()) > 0
+
     def _primitive_mask(self, scene):
-        # grasping primitive can't be done if we already have a grasped object
+        # grasp primitive can't be done if we already have a grasped object
         mask = np.array([1.]*self.num_primitives)
-        if self._regrasping_strategy == "mask" and self._robot_is_grasping(scene):
-            mask[1] = 0
+        if self._behaviour_when_unavailable == "mask":
+            if self._robot_is_grasping(scene):
+                mask[self.primitive_name_to_idx["grasp"]] = 0
+            else:
+                mask[self.primitive_name_to_idx["release"]] = 0
         return mask
+
+    def break_apart_action(self, a):
+        broken_a = {}
+        for k, v in self.primitive_name_to_action_idx.items():
+            broken_a[k] = a[v]
+        return broken_a
+
+    def action(self, scene: Scene, action: np.ndarray):
+        primitive_idx, primitive_args = (
+            np.argmax(action[: self.num_primitives]*self._primitive_mask(scene)),
+            action[self.num_primitives :],
+        )
+        primitive_name = self.primitive_idx_to_name[primitive_idx]
+        # if primitive_name != "no_op":
+        primitive_name_to_action_dict = self.break_apart_action(primitive_args)
+        primitive_action = primitive_name_to_action_dict[primitive_name]
+        primitive = self.primitive_name_to_func[primitive_name]
+        primitive(scene, primitive_action)
+
+        # success, terminate, info = scene.task.success()
+        # reward = scene.task.reward(success)
+        # stats = 
+        # return stats
+
+    def action_shape(self, scene: Scene) -> tuple:
+        return self.max_arg_len + self.num_primitives
+
+    def set_control_mode(self, robot):
+        self._planning_ee_action_mode.set_control_mode(robot)
+        self._ik_ee_action_mode.set_control_mode(robot)
+
+    #### GO TO PRIMITIVE
 
     def _go_to(self, scene: Scene, action: np.ndarray):
         q = self._default_quaternion
@@ -109,13 +155,15 @@ class Primitives(ActionMode):
         a = np.concatenate(([action[0], action[1], self._default_z], q))
         self._planning_ee_action_mode.action(scene, a)
 
-    def _robot_is_grasping(self, scene):
-        return len(scene.robot.gripper.get_grasped_objects()) > 0
+    #### GRASP PRIMITIVE
 
     def _top_grasp(self, scene: Scene, action: np.ndarray):
-        if self._robot_is_grasping(scene):
-            if self._regrasping_strategy == "release":
-                self._gripper_action_mode.action(scene, np.array([1.0]))
+        # if self._robot_is_grasping(scene):
+        #     if self._regrasping_strategy == "release":
+        #         self._gripper_action_mode.action(scene, np.array([1.0]))
+        # else:
+        if self._robot_is_grasping(scene) and self._behaviour_when_unavailable=="nothing":
+            pass
         else:
             current_pos = scene.robot.arm.get_tip().get_position()
 
@@ -147,11 +195,6 @@ class Primitives(ActionMode):
             a[-1] = 1 # identity quaternion
             self._ik_ee_action_mode.action(scene, a)
 
-            # go down
-            # current_pose = scene.robot.arm.get_tip().get_pose()
-            # current_pose[2] = DEFAULT_Z - 0.1
-            # self._planning_ee_action_mode.action(scene, current_pose)
-
             # grasp object
             # print("gripper before", scene.robot.gripper.get_open_amount()) # TODO problem
             self._gripper_action_mode.action(scene, np.array([0.0]))
@@ -166,35 +209,34 @@ class Primitives(ActionMode):
             if not self._robot_is_grasping(scene):
                 self._gripper_action_mode.action(scene, np.array([1.0]))
 
-    def break_apart_action(self, a):
-        broken_a = {}
-        for k, v in self.primitive_name_to_action_idx.items():
-            broken_a[k] = a[v]
-        return broken_a
+    #### RELEASE PRIMITIVE
 
-    def action(self, scene: Scene, action: np.ndarray):
-        primitive_idx, primitive_args = (
-            np.argmax(action[: self.num_primitives]*self._primitive_mask(scene)),
-            action[self.num_primitives :],
-        )
-        primitive_name = self.primitive_idx_to_name[primitive_idx]
-        # if primitive_name != "no_op":
-        primitive_name_to_action_dict = self.break_apart_action(primitive_args)
-        primitive_action = primitive_name_to_action_dict[primitive_name]
-        primitive = self.primitive_name_to_func[primitive_name]
-        primitive(scene, primitive_action)
+    def _top_release(self, scene: Scene, action: np.ndarray):
+        if not self._robot_is_grasping(scene) and self._behaviour_when_unavailable=="nothing":
+            pass
+        else:
+            current_pos = scene.robot.arm.get_tip().get_position()
 
-        # success, terminate, info = scene.task.success()
-        # reward = scene.task.reward(success)
-        # stats = 
-        # return stats
+            # set initial height and orientation
+            q = self._default_quaternion
+            q = np.array(q) / np.linalg.norm(q)
+            a = np.concatenate(([current_pos[0], current_pos[1], self._default_z], q))
+            self._planning_ee_action_mode.action(scene, a)
 
-    def action_shape(self, scene: Scene) -> tuple:
-        return self.max_arg_len + self.num_primitives
+            # go down
+            a = np.array([0.]*7)
+            a[2] = -.1 # move -0.1 in the Z axis
+            a[-1] = 1 # identity quaternion
+            self._ik_ee_action_mode.action(scene, a)
 
-    def set_control_mode(self, robot):
-        self._planning_ee_action_mode.set_control_mode(robot)
-        self._ik_ee_action_mode.set_control_mode(robot)
+            # release object
+            self._gripper_action_mode.action(scene, np.array([1.0]))
+
+            # go up
+            a = np.array([0.]*7)
+            a[2] = .1 # move -0.1 in the Z axis
+            a[-1] = 1 # identity quaternion
+            self._ik_ee_action_mode.action(scene, a)
 
 
 # class Primitives(ArmActionMode):
