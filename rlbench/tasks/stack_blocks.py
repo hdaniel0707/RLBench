@@ -19,12 +19,20 @@ class StackBlocks(Task):
         self.blocks_stacked = 0
         self.target_blocks = [Shape('stack_blocks_target%d' % i)
                               for i in range(4)]
+
+        for obj in self.target_blocks:
+            obj.set_mass(0.75)
+
         self.distractors = [
             Shape('stack_blocks_distractor%d' % i)
             for i in range(DISTRACTORS)]
+        
+        for obj in self.distractors:
+            obj.set_mass(0.75)
 
-        self.boundaries = [Shape('stack_blocks_boundary%d' % i)
-                           for i in range(4)]
+        # self.boundaries = [Shape('stack_blocks_boundary%d' % i)
+        #                    for i in range(4)]
+        self.boundaries = [Shape('hd_stack_blocks_boundary')]
 
         self.register_graspable_objects(self.target_blocks + self.distractors)
 
@@ -36,14 +44,17 @@ class StackBlocks(Task):
     def init_episode(self, index: int) -> List[str]:
         # For each color, we want to have 2, 3 or 4 blocks stacked
         color_index = int(index / MAX_STACKED_BLOCKS)
-        # self.blocks_to_stack = 2 + index % MAX_STACKED_BLOCKS
-        self.blocks_to_stack = 1 + index % MAX_STACKED_BLOCKS
+        # self.blocks_to_stack = 1 + index % MAX_STACKED_BLOCKS
+        self.blocks_to_stack = 4 + index % MAX_STACKED_BLOCKS
         color_name, color_rgb = colors[color_index]
         for b in self.target_blocks:
             b.set_color(color_rgb)
 
         success_detector = ProximitySensor(
             'stack_blocks_success')
+        
+        self._target_place = success_detector
+
         self.register_success_conditions([DetectedSeveralCondition(
             self.target_blocks, success_detector, self.blocks_to_stack),
             NothingGrasped(self.robot.gripper)
