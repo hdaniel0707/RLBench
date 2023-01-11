@@ -36,6 +36,8 @@ class ReachTargetNoDistractors(Task):
         for ob in [self.target]:#, self.distractor0, self.distractor1]:
             b.sample(ob, min_distance=0.2,
                      min_rotation=(0, 0, 0), max_rotation=(0, 0, 0))
+        
+        self._target_place = self.target
 
         # utilities for reward()
         self._init_distance = self._distance_to_goal()
