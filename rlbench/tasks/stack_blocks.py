@@ -21,14 +21,14 @@ class StackBlocks(Task):
                               for i in range(4)]
 
         for obj in self.target_blocks:
-            obj.set_mass(0.75)
+            obj.set_mass(0.01)
 
         self.distractors = [
             Shape('stack_blocks_distractor%d' % i)
             for i in range(DISTRACTORS)]
         
         for obj in self.distractors:
-            obj.set_mass(0.75)
+            obj.set_mass(0.01)
 
         # self.boundaries = [Shape('stack_blocks_boundary%d' % i)
         #                    for i in range(4)]
@@ -110,3 +110,6 @@ class StackBlocks(Task):
     def _repeat(self):
         self.blocks_stacked += 1
         return self.blocks_stacked < self.blocks_to_stack
+    
+    def is_static_workspace(self) -> bool:
+        return True
