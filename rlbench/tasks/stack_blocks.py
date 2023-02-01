@@ -46,8 +46,8 @@ class StackBlocks(Task):
     def init_episode(self, index: int) -> List[str]:
         # For each color, we want to have 2, 3 or 4 blocks stacked
         color_index = int(index / MAX_STACKED_BLOCKS)
-        self.blocks_to_stack = 1 + index % MAX_STACKED_BLOCKS
-        #self.blocks_to_stack = 4 + index % MAX_STACKED_BLOCKS
+        #self.blocks_to_stack = 1 + index % MAX_STACKED_BLOCKS
+        self.blocks_to_stack = 3 + index % MAX_STACKED_BLOCKS
         color_name, color_rgb = colors[color_index]
         for b in self.target_blocks:
             b.set_color(color_rgb)
@@ -56,6 +56,15 @@ class StackBlocks(Task):
             'stack_blocks_success')
         
         self._target_place = success_detector
+
+        # print(type(self.target_blocks))
+        # print(type(self.distractors))
+        # print(type([success_detector]))
+        # print(self.target_blocks)
+        # print(self.distractors)
+        # print(success_detector)
+
+        self._observation = self.target_blocks + self.distractors + [success_detector]
 
         self.register_success_conditions([DetectedSeveralCondition(
             self.target_blocks, success_detector, self.blocks_to_stack),
