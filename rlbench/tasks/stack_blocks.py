@@ -9,13 +9,30 @@ from rlbench.backend.conditions import NothingGrasped
 from rlbench.backend.spawn_boundary import SpawnBoundary
 from rlbench.const import colors
 
-MAX_STACKED_BLOCKS = 3
-DISTRACTORS = 4
+#MAX_STACKED_BLOCKS = 3
+#DISTRACTORS = 4
+CFG_FILE_PATH = "/home/daniel/rltrain/cfg_rlbench/config.yaml"
+
+import yaml
+import os
+def load_yaml(file):
+    if file is not None:
+        with open(file) as f:
+            return yaml.load(f, Loader=yaml.UnsafeLoader)
+    return None
 
 
 class StackBlocks(Task):
 
     def init_task(self) -> None:
+
+        cfg_path = load_yaml(CFG_FILE_PATH)['path']
+        config = load_yaml(cfg_path)
+        self.config_params = config['environment']['task']['params']
+        self.blocks_to_stack = self.config_params[0]
+        distractors_num = self.config_params[1]
+        #print(self.config_params)     
+
         self.blocks_stacked = 0
         self.target_blocks = [Shape('stack_blocks_target%d' % i)
                               for i in range(4)]
@@ -27,7 +44,7 @@ class StackBlocks(Task):
 
         self.distractors = [
             Shape('stack_blocks_distractor%d' % i)
-            for i in range(DISTRACTORS)]
+            for i in range(distractors_num)]
         
         for obj in self.distractors:
             obj.set_mass(cube_mass)
@@ -45,9 +62,10 @@ class StackBlocks(Task):
 
     def init_episode(self, index: int) -> List[str]:
         # For each color, we want to have 2, 3 or 4 blocks stacked
-        color_index = int(index / MAX_STACKED_BLOCKS)
-        #self.blocks_to_stack = 1 + index % MAX_STACKED_BLOCKS
-        self.blocks_to_stack = 3 + index % MAX_STACKED_BLOCKS
+        # color_index = int(index / MAX_STACKED_BLOCKS)
+        # self.blocks_to_stack = 1 + index % MAX_STACKED_BLOCKS
+        # self.blocks_to_stack = 3 + index % MAX_STACKED_BLOCKS
+        color_index = int(index / self.blocks_to_stack)
         color_name, color_rgb = colors[color_index]
         for b in self.target_blocks:
             b.set_color(color_rgb)
@@ -64,7 +82,7 @@ class StackBlocks(Task):
         # print(self.distractors)
         # print(success_detector)
 
-        self._observation = self.target_blocks + self.distractors + [success_detector]
+        self._observation = self.target_blocks + [success_detector]  + self.distractors
 
         self.register_success_conditions([DetectedSeveralCondition(
             self.target_blocks, success_detector, self.blocks_to_stack),
@@ -96,7 +114,7 @@ class StackBlocks(Task):
                 % (self.blocks_to_stack, color_name)]
 
     def variation_count(self) -> int:
-        return len(colors) * MAX_STACKED_BLOCKS
+        return len(colors) * self.blocks_to_stack
 
     def _move_above_next_target(self, _):
         if self.blocks_stacked >= self.blocks_to_stack:
