@@ -29,13 +29,14 @@ class StackBlocks(Task):
         cfg_path = load_yaml(CFG_FILE_PATH)['path']
         config = load_yaml(cfg_path)
         self.config_params = config['environment']['task']['params']
-        self.blocks_to_stack = self.config_params[0]
-        distractors_num = self.config_params[1]
+        target_blocks_num = int(self.config_params[0])
+        distractors_num = int(self.config_params[1])
+        self.blocks_to_stack = int(self.config_params[2])
         #print(self.config_params)     
 
         self.blocks_stacked = 0
         self.target_blocks = [Shape('stack_blocks_target%d' % i)
-                              for i in range(4)]
+                              for i in range(target_blocks_num)]
 
         cube_mass = 0.1
         #cube_mass = 0.01
@@ -69,6 +70,8 @@ class StackBlocks(Task):
         color_name, color_rgb = colors[color_index]
         for b in self.target_blocks:
             b.set_color(color_rgb)
+        
+        #self.target_blocks[0].set_color((1.0, 0.0, 1.0))
 
         success_detector = ProximitySensor(
             'stack_blocks_success')
@@ -82,7 +85,7 @@ class StackBlocks(Task):
         # print(self.distractors)
         # print(success_detector)
 
-        self._observation = self.target_blocks + [success_detector]  + self.distractors
+        self._observation = [success_detector] + self.target_blocks + self.distractors
 
         self.register_success_conditions([DetectedSeveralCondition(
             self.target_blocks, success_detector, self.blocks_to_stack),
