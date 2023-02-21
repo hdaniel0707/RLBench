@@ -32,14 +32,15 @@ class StackBlocks(Task):
         target_blocks_num = int(self.config_params[0])
         distractors_num = int(self.config_params[1])
         self.blocks_to_stack = int(self.config_params[2])
+        blocks_mass = self.config_params[3] if len(self.config_params) > 3 else 0.1
         #print(self.config_params)     
 
         self.blocks_stacked = 0
         self.target_blocks = [Shape('stack_blocks_target%d' % i)
                               for i in range(target_blocks_num)]
 
-        cube_mass = 0.1
-        #cube_mass = 0.01
+        cube_mass = blocks_mass
+        #cube_mass = 0.1
         for obj in self.target_blocks:
             obj.set_mass(cube_mass)
 
